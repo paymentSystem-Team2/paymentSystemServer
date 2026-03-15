@@ -31,7 +31,12 @@ public class UserService {
         );
 
         User savedUser = userRepository.save(user);
-        return new UserResponseDto(savedUser);
+        return new UserResponseDto(
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getPhoneNumber()
+        );
     }
 
     // 로그인

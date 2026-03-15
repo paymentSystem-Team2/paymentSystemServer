@@ -3,11 +3,9 @@ package sparta.paymentsystemserver.user.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class UserRequestDto {
 
     @NotBlank(message = "이름을 입력해주세요.")
