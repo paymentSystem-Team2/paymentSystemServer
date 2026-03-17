@@ -1,3 +1,11 @@
+---
+name: 기능 요청
+about: 새로운 기능 요청 템플릿
+title: "[FEATURE] "
+labels: enhancement
+assignees: ""
+---
+
 ## 💡 개요
 - (작업한 내용을 간략하게 설명해주세요. 예: 회원가입 API 구현)
 
