@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.domain.user.dto;
+package sparta.paymentsystemserver.domain.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
-public class LoginRequestDto {
+public class LoginRequest {
 
     @NotBlank(message = "이메일을 입력해주세요.")
     @Email(message = "이메일 형식으로 입력해주세요.")
