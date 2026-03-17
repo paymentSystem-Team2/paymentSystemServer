@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.config;
+package sparta.paymentsystemserver.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

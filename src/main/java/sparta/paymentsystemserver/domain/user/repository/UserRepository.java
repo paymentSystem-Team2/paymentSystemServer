@@ -1,7 +1,7 @@
-package sparta.paymentsystemserver.user.repository;
+package sparta.paymentsystemserver.domain.user.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import sparta.paymentsystemserver.user.entity.User;
+import sparta.paymentsystemserver.domain.user.entity.User;
 
 import java.util.Optional;
 

@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.user.entity;
+package sparta.paymentsystemserver.domain.user.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
