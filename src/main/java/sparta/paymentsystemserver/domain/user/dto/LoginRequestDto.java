@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.user.dto;
+package sparta.paymentsystemserver.domain.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

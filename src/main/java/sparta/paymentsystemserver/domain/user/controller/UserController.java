@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.user.controller;
+package sparta.paymentsystemserver.domain.user.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,10 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import sparta.paymentsystemserver.user.dto.LoginRequestDto;
-import sparta.paymentsystemserver.user.dto.UserRequestDto;
-import sparta.paymentsystemserver.user.dto.UserResponseDto;
-import sparta.paymentsystemserver.user.service.UserService;
+import sparta.paymentsystemserver.domain.user.dto.LoginRequestDto;
+import sparta.paymentsystemserver.domain.user.dto.UserRequestDto;
+import sparta.paymentsystemserver.domain.user.dto.UserResponseDto;
+import sparta.paymentsystemserver.domain.user.service.UserService;
 
 @RestController
 @RequiredArgsConstructor

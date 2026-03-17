@@ -1,14 +1,14 @@
-package sparta.paymentsystemserver.user.service;
+package sparta.paymentsystemserver.domain.user.service;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sparta.paymentsystemserver.user.dto.LoginRequestDto;
-import sparta.paymentsystemserver.user.dto.UserRequestDto;
-import sparta.paymentsystemserver.user.dto.UserResponseDto;
-import sparta.paymentsystemserver.user.entity.User;
-import sparta.paymentsystemserver.user.repository.UserRepository;
+import sparta.paymentsystemserver.domain.user.dto.LoginRequestDto;
+import sparta.paymentsystemserver.domain.user.dto.UserRequestDto;
+import sparta.paymentsystemserver.domain.user.dto.UserResponseDto;
+import sparta.paymentsystemserver.domain.user.entity.User;
+import sparta.paymentsystemserver.domain.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
