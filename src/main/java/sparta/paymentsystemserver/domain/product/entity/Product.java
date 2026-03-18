@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.product.entity;
+package sparta.paymentsystemserver.domain.product.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

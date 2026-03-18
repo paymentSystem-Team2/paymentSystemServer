@@ -1,7 +1,7 @@
-package sparta.paymentsystemserver.order.repository;
+package sparta.paymentsystemserver.domain.order.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import sparta.paymentsystemserver.order.entity.OrderItem;
+import sparta.paymentsystemserver.domain.order.entity.OrderItem;
 
 import java.util.List;
 
