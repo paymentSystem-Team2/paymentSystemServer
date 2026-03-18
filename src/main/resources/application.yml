@@ -1,3 +1,29 @@
 spring:
-  application:
-    name: paymentSystemServer
+  datasource:
+    url: jdbc:h2:file:~/testdb;AUTO_SERVER=TRUE # h2 db 연결
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  data: # redis 연결
+    redis:
+      host: redis-10805.c340.ap-northeast-2-1.ec2.cloud.redislabs.com
+      port: 10805
+      username: default
+      password: jSQDBRRXEuC60biO1HpTAVoGUyafg34a
+      timeout: 5s
+
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: 5a8b2a02-90b3-4d8e-abe5-72f58f6253f9 # jwt 키

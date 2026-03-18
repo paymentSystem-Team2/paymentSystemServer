@@ -22,18 +22,23 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 사용자 이름
     @Column(nullable = false)
     private String name;
 
+    // 로그인 이메일
     @Column(unique = true, nullable = false)
     private String email;
 
+    // 비밀번호
     @Column(nullable = false)
     private String password;
 
+    // PortOne 빌링 고객 식별자
     @Column(nullable = false)
     private String customerUid;
 
+    // 현재 포인트 잔액
     @Column(nullable = false)
     private Long pointBalance = 0L;
 
@@ -45,6 +50,7 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    // 전화번호
     @Column(nullable = false)
     private String phone;
 
