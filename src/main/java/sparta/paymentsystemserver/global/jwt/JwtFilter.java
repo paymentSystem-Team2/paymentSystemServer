@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
 
 import java.io.IOException;
 import java.util.List;
@@ -56,12 +57,12 @@ public class JwtFilter extends OncePerRequestFilter {
                 sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED");
                 return;
             }
-            //CustomUserDetails 필요하면 추후 추가
-//            String email = jwtUtil.getEmail(token);
+            String email = jwtUtil.getEmail(token);
             Long id = jwtUtil.getId(token);
 
+            LoginUserData loginUserData = new LoginUserData(id, email);
             Authentication authentication =
-                    new UsernamePasswordAuthenticationToken(id, null, List.of());
+                    new UsernamePasswordAuthenticationToken(loginUserData, null, List.of());
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             filterChain.doFilter(request, response);
