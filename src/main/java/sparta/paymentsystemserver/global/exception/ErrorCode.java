@@ -19,7 +19,7 @@ public enum ErrorCode {
     PASSWORD_NOT_MATCH(HttpStatus.UNAUTHORIZED, "AUTH006", "비밀번호가 일치하지 않습니다."),
 
 //    사용자 예외 (USER###)
-
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER001", "사용자를 찾을 수 없습니다."),
 
 //    상품 예외 (PROD###)
     PRODUCT_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "PROD001", "재고가 부족합니다"),
@@ -27,9 +27,15 @@ public enum ErrorCode {
 
 
 //    주문 예외 (ORD###)
-
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORD001", "주문을 찾을 수 없습니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORD002", "본인 주문만 접근할 수 있습니다."),
+    ORDER_NOT_PAYABLE(HttpStatus.BAD_REQUEST, "ORD003", "결제 가능한 주문 상태가 아닙니다."),
+    ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "ORD004", "주문 금액이 일치하지 않습니다."),
 
 //    결제 예외 (PAY###)
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAY001", "결제 정보를 찾을 수 없습니다."),
+    INVALID_POINTS_TO_USE(HttpStatus.BAD_REQUEST, "PAY002", "사용 포인트 값이 올바르지 않습니다."),
+    INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "PAY003", "보유 포인트가 부족합니다.");
 
 
 //    포인트 예외 (PNT###)
