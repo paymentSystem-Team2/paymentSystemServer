@@ -10,7 +10,12 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "COM001", "입력값이 올바르지 않습니다."),
 
 //    인증/인가 예외 (AUTH###)
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH001", "접근 권한이 없습니다.");
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH001", "접근 권한이 없습니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH002", "잘못된 토큰입니다."),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH003", "만료된 토큰입니다."),
+    EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH004", "Refresh Token이 만료되었습니다. 재로그인 해주세요."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH005", "유효하지 않은 Refresh Token입니다."),
+    PASSWORD_NOT_MATCH(HttpStatus.UNAUTHORIZED, "AUTH006", "비밀번호가 일치하지 않습니다.");
 
 //    사용자 예외 (USER###)
 
