@@ -1,10 +1,9 @@
 package sparta.paymentsystemserver.domain.user.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sparta.paymentsystemserver.domain.user.dto.LoginRequestDto;
 import sparta.paymentsystemserver.domain.user.dto.UserRequestDto;
 import sparta.paymentsystemserver.domain.user.dto.UserResponseDto;
 import sparta.paymentsystemserver.domain.user.entity.User;
@@ -15,10 +14,10 @@ import sparta.paymentsystemserver.domain.user.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // 회원가입
     @Transactional
-    public UserResponseDto save(@Valid UserRequestDto requestDto) {
+    public UserResponseDto save(UserRequestDto requestDto) {
         if (userRepository.existsByEmail(requestDto.getEmail())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
@@ -26,7 +25,7 @@ public class UserService {
         User user = new User(
                 requestDto.getUsername(),
                 requestDto.getEmail(),
-                requestDto.getPassword(),
+                passwordEncoder.encode(requestDto.getPassword()),
                 requestDto.getPhoneNumber()
         );
 
@@ -39,15 +38,10 @@ public class UserService {
         );
     }
 
-    // 로그인
-    @Transactional
-    public void login(@Valid LoginRequestDto requestDto) {
-        // 이메일 확인
-        User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(
-                () -> new IllegalArgumentException("이메일 또는 비밀번호가 틀렸습니다.")
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("존재하지 않은 유저입니다.")
         );
-        if (!user.getPassword().equals(requestDto.getPassword())) {
-            throw new IllegalArgumentException("이메일 또는 비밀번호가 틀렸습니다.");
-        }
     }
 }
