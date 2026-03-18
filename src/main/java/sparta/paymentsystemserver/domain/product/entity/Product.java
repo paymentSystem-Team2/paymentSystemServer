@@ -4,11 +4,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import sparta.paymentsystemserver.domain.product.exception.ProductException;
+import sparta.paymentsystemserver.domain.product.exception.ProductStockException;
+import sparta.paymentsystemserver.global.exception.ErrorCode;
 
 @Entity
 @Getter
 @Table(name = "products")
-@NoArgsConstructor@AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
 
     @Id
@@ -36,4 +40,34 @@ public class Product {
     @Column(nullable = false)
     private String category;
 
+    // 재고 감소
+    public void decreaseStock(Long quantity){
+        if (quantity == null || quantity <= 0) {
+            throw new ProductStockException(ErrorCode.INVALID_QUANTITY);
+        }
+
+        if (this.stock < quantity) {
+            throw new ProductStockException(ErrorCode.PRODUCT_OUT_OF_STOCK);
+        }
+
+        this.stock -= quantity;
+
+        if (this.stock == 0) {
+            this.status = ProductStatus.SOLD_OUT;
+        }
+    }
+
+    // 재고 복구
+    public void increaseStock(Long quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new ProductStockException(ErrorCode.INVALID_QUANTITY);
+        }
+
+        this.stock += quantity;
+
+        if (this.status == ProductStatus.SOLD_OUT && this.stock > 0) {
+            this.status = ProductStatus.ON_SALE;
+        }
+    }
 }
+
