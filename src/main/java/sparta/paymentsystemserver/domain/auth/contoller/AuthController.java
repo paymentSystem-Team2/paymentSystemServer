@@ -13,8 +13,8 @@ import sparta.paymentsystemserver.domain.auth.dto.LoginUserResponse;
 import sparta.paymentsystemserver.domain.auth.dto.TokenResponse;
 import sparta.paymentsystemserver.domain.auth.service.AuthService;
 import sparta.paymentsystemserver.domain.auth.dto.LoginRequest;
-import sparta.paymentsystemserver.domain.user.dto.UserRequestDto;
-import sparta.paymentsystemserver.domain.user.dto.UserResponseDto;
+import sparta.paymentsystemserver.domain.user.dto.UserRequest;
+import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 
 import java.time.Duration;
 
@@ -26,8 +26,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponseDto> signUp(@Valid @RequestBody UserRequestDto requestDto) {
-        UserResponseDto responseDto = authService.signUp(requestDto);
+    public ResponseEntity<UserResponse> signUp(@Valid @RequestBody UserRequest requestDto) {
+        UserResponse responseDto = authService.signUp(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
