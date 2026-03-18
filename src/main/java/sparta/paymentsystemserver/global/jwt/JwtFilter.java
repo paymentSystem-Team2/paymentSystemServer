@@ -34,6 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (pathMatcher.match("/api/auth/login", path)) return true;
         if (pathMatcher.match("/api/auth/signup", path)) return true;
         if (pathMatcher.match("/api/auth/refresh", path)) return true;
+        if (pathMatcher.match("/actuator/**", path)) return true;
 
         // OPTIONS preflight 제외(프론트 CORS)
         return "OPTIONS".equalsIgnoreCase(method);
