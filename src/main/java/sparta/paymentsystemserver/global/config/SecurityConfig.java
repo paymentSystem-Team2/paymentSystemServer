@@ -36,7 +36,12 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/**","/api/auth/signup", "/api/auth/login","/api/auth/refresh").permitAll()
+                .requestMatchers(
+                        "/api/auth/signup",
+                        "/api/auth/login",
+                        "/api/auth/refresh",
+                        "/api/webhooks/**"
+                ).permitAll()
                 .anyRequest().authenticated()
         );
 

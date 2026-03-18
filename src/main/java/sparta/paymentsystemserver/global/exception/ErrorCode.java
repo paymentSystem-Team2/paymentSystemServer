@@ -35,7 +35,10 @@ public enum ErrorCode {
 //    결제 예외 (PAY###)
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAY001", "결제 정보를 찾을 수 없습니다."),
     INVALID_POINTS_TO_USE(HttpStatus.BAD_REQUEST, "PAY002", "사용 포인트 값이 올바르지 않습니다."),
-    INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "PAY003", "보유 포인트가 부족합니다.");
+    INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "PAY003", "보유 포인트가 부족합니다."),
+    PAYMENT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "PAY004", "PortOne 결제 검증에 실패했습니다."),
+    PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAY005", "결제 승인 금액이 서버 계산 금액과 일치하지 않습니다."),
+    PAYMENT_CONFIRM_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "PAY006", "확정할 수 없는 결제 상태입니다.");
 
 
 //    포인트 예외 (PNT###)
