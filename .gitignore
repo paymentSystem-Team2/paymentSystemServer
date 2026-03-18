@@ -37,3 +37,12 @@ out/
 
 ### VS Code ###
 .vscode/
+
+application-local.yml
+application-prod.yml
+logback-spring.xml
+
+### Mac ###
+.DS_Store
+
+*.log
