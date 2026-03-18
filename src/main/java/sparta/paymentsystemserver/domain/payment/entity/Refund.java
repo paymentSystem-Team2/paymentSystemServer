@@ -37,6 +37,11 @@ public class Refund extends BaseEntity {
     @Column(length = 300)
     private String reason;
 
+    // 환불 요청이 완료됐는지 실패했는지 추적하기 위한 상태값
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private RefundStatus status;
+
     // 외부 PG가 내려준 환불 거래 번호
     @Column(length = 100)
     private String providerRefundId;
@@ -47,22 +52,31 @@ public class Refund extends BaseEntity {
             Payment payment,
             long refundAmount,
             String reason,
+            RefundStatus status,
             String providerRefundId
     ) {
         this.refundId = refundId;
         this.payment = payment;
         this.refundAmount = refundAmount;
         this.reason = reason;
+        this.status = status;
         this.providerRefundId = providerRefundId;
     }
 
     // 환불 이력을 생성하는 정적 팩토리 메서드
-    public static Refund create(String refundId, Payment payment, long refundAmount, String reason, String providerRefundId) {
+    public static Refund create(
+            String refundId,
+            Payment payment,
+            long refundAmount,
+            String reason,
+            RefundStatus status,
+            String providerRefundId) {
         return Refund.builder()
                 .refundId(refundId)
                 .payment(payment)
                 .refundAmount(refundAmount)
                 .reason(reason)
+                .status(status)
                 .providerRefundId(providerRefundId)
                 .build();
     }
