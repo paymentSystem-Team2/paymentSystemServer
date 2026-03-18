@@ -23,7 +23,7 @@ public enum ErrorCode {
 
 //    상품 예외 (PROD###)
     PRODUCT_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "PROD001", "재고가 부족합니다"),
-    INVALID_QUANTITY(HttpStatus.BAD_REQUEST,"PROD002", "수량은 1 이상이어야 합니다.");
+    INVALID_QUANTITY(HttpStatus.BAD_REQUEST,"PROD002", "수량은 1 이상이어야 합니다."),
 
 
 //    주문 예외 (ORD###)
