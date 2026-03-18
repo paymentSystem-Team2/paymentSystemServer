@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.order.entity;
+package sparta.paymentsystemserver.domain.order.entity;
 
 public enum OrderStatus {
     PENDING_PAYMENT,

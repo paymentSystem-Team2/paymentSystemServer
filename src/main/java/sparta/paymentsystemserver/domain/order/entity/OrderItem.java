@@ -1,10 +1,10 @@
-package sparta.paymentsystemserver.order.entity;
+package sparta.paymentsystemserver.domain.order.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import sparta.paymentsystemserver.product.entity.Product;
+import sparta.paymentsystemserver.domain.product.entity.Product;
 
 import java.time.LocalDateTime;
 
