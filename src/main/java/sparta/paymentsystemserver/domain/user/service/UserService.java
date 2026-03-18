@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sparta.paymentsystemserver.domain.user.dto.UserRequestDto;
-import sparta.paymentsystemserver.domain.user.dto.UserResponseDto;
+import sparta.paymentsystemserver.domain.user.dto.UserRequest;
+import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.repository.UserRepository;
 
@@ -17,24 +17,26 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserResponseDto save(UserRequestDto requestDto) {
+    public UserResponse save(UserRequest requestDto) {
         if (userRepository.existsByEmail(requestDto.getEmail())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
         User user = new User(
-                requestDto.getUsername(),
+                requestDto.getName(),
                 requestDto.getEmail(),
                 passwordEncoder.encode(requestDto.getPassword()),
-                requestDto.getPhoneNumber()
+                requestDto.getPhone(),
+                requestDto.getCustomerUid()
         );
 
         User savedUser = userRepository.save(user);
-        return new UserResponseDto(
+        return new UserResponse(
                 savedUser.getId(),
-                savedUser.getUsername(),
+                savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getPhoneNumber()
+                savedUser.getPhone(),
+                savedUser.getCustomerUid()
         );
     }
 
