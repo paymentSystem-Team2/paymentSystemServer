@@ -34,19 +34,25 @@ public class PointTransaction extends BaseEntity {
     @Column(nullable = false)
     private PointTransactionType type;
 
+//    이번 거래 포인트 증감량
     @Column(nullable = false)
     private Long points;
 
-    private LocalDateTime expiresAt;
-    private LocalDateTime expiration_processedAt;
+//    이번 거래 후의 잔액 스냅샷
+    @Column(nullable = false)
+    private Long balanceSnapshot;
 
-    public static PointTransaction earned(String id, User user, Order order, Long points, LocalDateTime expiresAt) {
+    private LocalDateTime expiresAt;
+    private LocalDateTime expirationProcessedAt;
+
+    public static PointTransaction earned(String id, User user, Order order, Long points, Long balanceSnapshot, LocalDateTime expiresAt) {
         PointTransaction pt = new PointTransaction();
         pt.pointTransactionId = id;
         pt.user = user;
         pt.order = order;
         pt.type = PointTransactionType.EARNED;
         pt.points = points;
+        pt.balanceSnapshot = balanceSnapshot;
         pt.expiresAt = expiresAt;
         return pt;
     }

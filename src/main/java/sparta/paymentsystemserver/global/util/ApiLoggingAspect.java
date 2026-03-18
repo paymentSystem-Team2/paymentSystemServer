@@ -12,16 +12,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiLoggingAspect {
 
-    @Around("execution(* sparta.paymentsystemserver.domain..controller.*(..))")
+    @Around("execution(* sparta.paymentsystemserver.domain..controller.*(..)) " +
+            "&& !execution(* sparta.paymentsystemserver.domain.auth..*(..))")
     public Object logApi(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
 
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        String[] parameterNames = signature.getParameterNames();
-        Object[] args = joinPoint.getArgs();
-
-        log.info("[API 요청] {} / {} | 파라미터: [{}]", className, methodName, parameterNames);
+        log.info("[API 요청] {} / {}()", className, methodName);
 
         long startTime = System.currentTimeMillis();
 
@@ -30,7 +27,7 @@ public class ApiLoggingAspect {
         long endTime = System.currentTimeMillis();
         long executionTime = endTime - startTime;
 
-        log.info("[API 응답] {} / {} (수행시간: {}ms)", className, methodName, executionTime);
+        log.info("[API 응답] {} / {}() (수행시간: {}ms)", className, methodName, executionTime);
 
         return result;
     }
