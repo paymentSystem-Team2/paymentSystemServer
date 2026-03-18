@@ -8,12 +8,15 @@ import sparta.paymentsystemserver.domain.order.entity.OrderStatus;
 import sparta.paymentsystemserver.domain.order.repository.OrderRepository;
 import sparta.paymentsystemserver.domain.payment.dto.CreatePaymentRequest;
 import sparta.paymentsystemserver.domain.payment.dto.CreatePaymentResponse;
+import sparta.paymentsystemserver.domain.payment.dto.PaymentResultResponse;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentProvider;
+import sparta.paymentsystemserver.domain.payment.entity.PaymentStatus;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.repository.UserRepository;
+import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
@@ -27,6 +30,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final PublicIdGenerator publicIdGenerator;
+    private final PortOnePaymentClient portOnePaymentClient;
 
     // 결제 시도 생성 메서드
     // 이 단계에서는 실제 결제를 확정하지 않고, 프론트가 포트원 결제창을 열기 전에 서버에 READY 상태 결제를 미리 저장하는 용도
@@ -84,11 +88,80 @@ public class PaymentService {
         paymentRepository.save(payment);
 
         return new CreatePaymentResponse(
+                true,
                 payment.getPaymentId(),
                 order.getOrderId(),
                 payment.getTotalAmount(),
                 payment.getPointsToUse(),
                 payment.getExternalAmount(),
+                payment.getStatus().name()
+        );
+    }
+
+    // 결제 확정 메서드
+    // 클라이언트가 결제 성공이라고 보내더라도 서버가 PortOne 결제 조회 API를 호출해 최종 상태를 검증한 뒤에만 결제를 확정
+    @Transactional
+    public PaymentResultResponse confirmPayment(String paymentId, Long userId) {
+
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        // 본인 결제만 확정할 수 있도록 소유권을 검사
+        if (!payment.getUser().getId().equals(userId)) {
+            throw new PaymentException(ErrorCode.ORDER_ACCESS_DENIED);
+        }
+
+        // 이미 결제 완료 상태라면 멱등하게 그대로 성공 응답을 반환
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            return new PaymentResultResponse(
+                    true,
+                    payment.getPaymentId(),
+                    payment.getOrder().getOrderId(),
+                    payment.getStatus().name()
+            );
+        }
+
+        // READY 상태가 아닌 결제는 확정 대상이 아님
+        if (payment.getStatus() != PaymentStatus.READY) {
+            throw new PaymentException(ErrorCode.PAYMENT_CONFIRM_NOT_ALLOWED);
+        }
+
+        // 내부 포인트 전액 결제는 외부 PortOne 호출 없이 바로 성공 처리할 수 있게 함
+        if (payment.getProvider() == PaymentProvider.INTERNAL) {
+            payment.markPaid("INTERNAL");
+            payment.getOrder().complete();
+
+            return new PaymentResultResponse(
+                    true,
+                    payment.getPaymentId(),
+                    payment.getOrder().getOrderId(),
+                    payment.getStatus().name()
+            );
+        }
+
+        // 외부 포트원 결제는 서버가 직접 결제 조회를 수행
+        PortOnePaymentClient.PortOnePaymentInfo paymentInfo = portOnePaymentClient.getPayment(paymentId);
+
+        // 실제 포트원 응답 기준으로 결제 성공 상태인지 확인
+        if (!paymentInfo.isPaid()) {
+            payment.markFailed("PortOne 결제 상태가 PAID가 아닙니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_VERIFICATION_FAILED);
+        }
+
+        // 포트원 승인 금액과 서버가 계산한 외부 결제 금액이 정확히 일치해야 함
+        if (paymentInfo.amount() != payment.getExternalAmount()) {
+            payment.markFailed("PortOne 승인 금액과 서버 계산 금액이 일치하지 않습니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
+
+        // 모든 검증이 끝난 뒤에만 최종 결제 완료 처리
+        payment.markPaid(paymentInfo.transactionId());
+        payment.getOrder().complete();
+
+        return new PaymentResultResponse(
+                true,
+                payment.getPaymentId(),
+                payment.getOrder().getOrderId(),
                 payment.getStatus().name()
         );
     }
