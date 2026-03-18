@@ -2,6 +2,7 @@ package sparta.paymentsystemserver.global.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import sparta.paymentsystemserver.domain.product.entity.Product;
 
 @Getter
 public enum ErrorCode {
@@ -15,12 +16,14 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH003", "만료된 토큰입니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH004", "Refresh Token이 만료되었습니다. 재로그인 해주세요."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH005", "유효하지 않은 Refresh Token입니다."),
-    PASSWORD_NOT_MATCH(HttpStatus.UNAUTHORIZED, "AUTH006", "비밀번호가 일치하지 않습니다.");
+    PASSWORD_NOT_MATCH(HttpStatus.UNAUTHORIZED, "AUTH006", "비밀번호가 일치하지 않습니다."),
 
 //    사용자 예외 (USER###)
 
 
 //    상품 예외 (PROD###)
+    PRODUCT_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "PROD001", "재고가 부족합니다"),
+    INVALID_QUANTITY(HttpStatus.BAD_REQUEST,"PROD002", "수량은 1 이상이어야 합니다.");
 
 
 //    주문 예외 (ORD###)
