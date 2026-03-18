@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import sparta.paymentsystemserver.domain.auth.exception.AuthException;
 
 import java.util.List;
 
@@ -30,6 +31,13 @@ public class GlobalExceptionHandler {
 
 //    인증/인가 예외 로직 부분
 
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleAuthException(AuthException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode));
+    }
 //    사용자 예외 로직 부분
 
 
