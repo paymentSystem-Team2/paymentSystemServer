@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.dialect.unique.CreateTableUniqueDelegate;
+import sparta.paymentsystemserver.domain.order.entity.Order;
 import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.global.config.BaseEntity;
 
@@ -29,9 +29,9 @@ public class Payment extends BaseEntity {
     private String paymentId;
 
     // 어떤 주문에 대한 결제 시도인지 연결하는 참조
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "order_id")
-//    private Order order;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     // 결제를 수행한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
@@ -77,53 +77,53 @@ public class Payment extends BaseEntity {
     // 결제 실패 시 원인을 남기는 필드
     @Column(length = 300)
     private String failureReason;
-//
-//    @Builder
-//    private Payment(
-//            String paymentId,
-//            Order order,
-//            User user,
-//            PaymentProvider provider,
-//            PaymentStatus status,
-//            long totalAmount,
-//            long pointsToUse,
-//            long externalAmount,
-//            String currency
-//    ) {
-//        this.paymentId = paymentId;
-//        this.order = order;
-//        this.user = user;
-//        this.provider = provider;
-//        this.status = status;
-//        this.totalAmount = totalAmount;
-//        this.pointsToUse = pointsToUse;
-//        this.externalAmount = externalAmount;
-//        this.currency = currency;
-//    }
 
-    // 결제 시도 생성 시점에는 아직 확정 전이라 READY 상태로 시작
-//    public static Payment ready(
-//            String paymentId,
-//            Order order,
-//            User user,
-//            PaymentProvider provider,
-//            long totalAmount,
-//            long pointsToUse,
-//            long externalAmount,
-//            String currency
-//    ) {
-//        return Payment.builder()
-//                .paymentId(paymentId)
-//                .order(order)
-//                .user(user)
-//                .provider(provider)
-//                .status(PaymentStatus.READY)
-//                .totalAmount(totalAmount)
-//                .pointsToUse(pointsToUse)
-//                .externalAmount(externalAmount)
-//                .currency(currency)
-//                .build();
-//    }
+    @Builder
+    private Payment(
+            String paymentId,
+            Order order,
+            User user,
+            PaymentProvider provider,
+            PaymentStatus status,
+            long totalAmount,
+            long pointsToUse,
+            long externalAmount,
+            String currency
+    ) {
+        this.paymentId = paymentId;
+        this.order = order;
+        this.user = user;
+        this.provider = provider;
+        this.status = status;
+        this.totalAmount = totalAmount;
+        this.pointsToUse = pointsToUse;
+        this.externalAmount = externalAmount;
+        this.currency = currency;
+    }
+
+//     결제 시도 생성 시점에는 아직 확정 전이라 READY 상태로 시작
+    public static Payment ready(
+            String paymentId,
+            Order order,
+            User user,
+            PaymentProvider provider,
+            long totalAmount,
+            long pointsToUse,
+            long externalAmount,
+            String currency
+    ) {
+        return Payment.builder()
+                .paymentId(paymentId)
+                .order(order)
+                .user(user)
+                .provider(provider)
+                .status(PaymentStatus.READY)
+                .totalAmount(totalAmount)
+                .pointsToUse(pointsToUse)
+                .externalAmount(externalAmount)
+                .currency(currency)
+                .build();
+    }
 
     // 외부 결제 또는 내부 포인트 결제가 최종 승인할 시에 호출
     public void markPaid(String providerTransactionId) {
