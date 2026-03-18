@@ -20,6 +20,7 @@ public enum ErrorCode {
 
 //    사용자 예외 (USER###)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER001", "사용자를 찾을 수 없습니다."),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "USER002", "이미 존재하는 이메일입니다."),
 
 //    상품 예외 (PROD###)
     PRODUCT_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "PROD001", "재고가 부족합니다"),

@@ -7,6 +7,7 @@ build/
 
 .env
 /src/main/resources/application-local.yml
+
 ### STS ###
 .apt_generated
 .classpath
@@ -37,10 +38,6 @@ out/
 
 ### VS Code ###
 .vscode/
-
-application-local.yml
-application-prod.yml
-logback-spring.xml
 
 ### Mac ###
 .DS_Store

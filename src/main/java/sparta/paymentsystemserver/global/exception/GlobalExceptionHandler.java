@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import sparta.paymentsystemserver.domain.auth.exception.AuthException;
 import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
+import sparta.paymentsystemserver.domain.user.exception.UserException;
 
 import java.util.List;
 
@@ -40,8 +41,15 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getStatus())
                 .body(ApiResponse.fail(errorCode));
     }
-//    사용자 예외 로직 부분
 
+    //    사용자 예외 로직 부분
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUserException(UserException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode));
+    }
 
 //    상품 예외 로직 부분
 
