@@ -9,7 +9,6 @@ import sparta.paymentsystemserver.domain.order.dto.CreateOrderResponse;
 import sparta.paymentsystemserver.domain.order.entity.Order;
 import sparta.paymentsystemserver.domain.order.entity.OrderItem;
 import sparta.paymentsystemserver.domain.order.entity.OrderStatus;
-import sparta.paymentsystemserver.domain.order.exception.OrderException;
 import sparta.paymentsystemserver.domain.order.repository.OrderItemRepository;
 import sparta.paymentsystemserver.domain.order.repository.OrderRepository;
 import sparta.paymentsystemserver.domain.product.entity.Product;
@@ -17,6 +16,7 @@ import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.product.exception.ProductStockException;
 import sparta.paymentsystemserver.domain.product.repository.ProductRepository;
 import sparta.paymentsystemserver.domain.user.entity.User;
+import sparta.paymentsystemserver.domain.user.service.UserService;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
@@ -34,9 +34,10 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final PublicIdGenerator publicIdGenerator;
+    private final UserService userService;
 
-    public CreateOrderResponse createOrder(User user, CreateOrderRequest request){
-
+    public CreateOrderResponse createOrder(Long userId, CreateOrderRequest request){
+        User user = userService.findById(userId);
         // 서버가 직접 계산한 총 주문 금액
         long caculatedTotalAmount = 0L;
 
@@ -57,11 +58,6 @@ public class OrderService {
 
             // 서버 기준 총 주문 금액 계산
             caculatedTotalAmount += product.getPrice() * itemRequest.quantity();
-        }
-
-        // 클라이언트가 보낸 총 금액과 서버 계산 금액 비교
-        if (!request.totalAmount().equals(caculatedTotalAmount)){
-            throw new OrderException(ErrorCode.ORDER_AMOUNT_MISMATCH);
         }
 
         // 주문 ID , 주문 번호 생서

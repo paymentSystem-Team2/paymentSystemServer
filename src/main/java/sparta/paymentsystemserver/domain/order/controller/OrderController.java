@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
 import sparta.paymentsystemserver.domain.order.service.OrderService;
 import sparta.paymentsystemserver.domain.order.dto.CreateOrderRequest;
 import sparta.paymentsystemserver.domain.order.dto.CreateOrderResponse;
-import sparta.paymentsystemserver.domain.user.entity.User;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,11 +24,11 @@ public class OrderController {
     public CreateOrderResponse createOrder(
 
             // 로그인한 사용자
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal LoginUserData loginUserData,
             // 요청 바디 검증
             @Valid @RequestBody CreateOrderRequest request
     ){
         // 주문 생성 서비스 호출
-        return orderService.createOrder(user, request);
+        return orderService.createOrder(loginUserData.userId(), request);
     }
 }
