@@ -1,4 +1,7 @@
 spring:
+  config:
+    import:
+      - classpath:client-api-config.yml
   application:
     name: paymentSystemServer
 
