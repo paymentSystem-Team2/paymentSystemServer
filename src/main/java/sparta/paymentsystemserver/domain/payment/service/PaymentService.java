@@ -111,7 +111,27 @@ public class PaymentService {
             throw new PaymentException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        // 이미 결제 완료 상태라면 멱등하게 그대로 성공 응답을 반환
+        return confirmPaymentInternal(payment);
+    }
+
+
+    // 내부 공용 결제 확정 메서드
+    // 클라이언트 쪽의 confirm과 webhook confirm이 같은 로직을 재사용하도록 분리
+    @Transactional
+    public PaymentResultResponse confirmPaymentByWebhook(String paymentId) {
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        return confirmPaymentInternal(payment);
+    }
+
+
+
+    // 실제 결제 확정 공통 로직
+    // 결제 상태, 포트원 조회 결과, 금액 일치 여부를 검증한 뒤에 최족 확정
+    private PaymentResultResponse confirmPaymentInternal(Payment payment) {
+
+        // 이미 결제 완료된 상태라면 멱등하게 그대로 성공 응답 반환
         if (payment.getStatus() == PaymentStatus.PAID) {
             return new PaymentResultResponse(
                     true,
@@ -121,12 +141,12 @@ public class PaymentService {
             );
         }
 
-        // READY 상태가 아닌 결제는 확정 대상이 아님
+        // READY 상태만 확정 가능
         if (payment.getStatus() != PaymentStatus.READY) {
             throw new PaymentException(ErrorCode.PAYMENT_CONFIRM_NOT_ALLOWED);
         }
 
-        // 내부 포인트 전액 결제는 외부 PortOne 호출 없이 바로 성공 처리할 수 있게 함
+        // 내부 포인트 전액 결제는 외부 조회 없이 바로 성공 처리
         if (payment.getProvider() == PaymentProvider.INTERNAL) {
             payment.markPaid("INTERNAL");
             payment.getOrder().complete();
@@ -139,22 +159,20 @@ public class PaymentService {
             );
         }
 
-        // 외부 포트원 결제는 서버가 직접 결제 조회를 수행
-        PortOnePaymentClient.PortOnePaymentInfo paymentInfo = portOnePaymentClient.getPayment(paymentId);
+        // 포트원 재조회
+        PortOnePaymentClient.PortOnePaymentInfo paymentInfo =
+                portOnePaymentClient.getPayment(payment.getPaymentId());
 
-        // 실제 포트원 응답 기준으로 결제 성공 상태인지 확인
         if (!paymentInfo.isPaid()) {
             payment.markFailed("PortOne 결제 상태가 PAID가 아닙니다.");
             throw new PaymentException(ErrorCode.PAYMENT_VERIFICATION_FAILED);
         }
 
-        // 포트원 승인 금액과 서버가 계산한 외부 결제 금액이 정확히 일치해야 함
         if (paymentInfo.amount() != payment.getExternalAmount()) {
             payment.markFailed("PortOne 승인 금액과 서버 계산 금액이 일치하지 않습니다.");
             throw new PaymentException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        // 모든 검증이 끝난 뒤에만 최종 결제 완료 처리
         payment.markPaid(paymentInfo.transactionId());
         payment.getOrder().complete();
 
