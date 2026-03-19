@@ -1,13 +1,13 @@
 package sparta.paymentsystemserver.domain.user.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
 import sparta.paymentsystemserver.domain.user.dto.UserResponse;
+import sparta.paymentsystemserver.domain.user.dto.UserUpdateRequest;
 import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.service.UserService;
 
@@ -31,5 +31,15 @@ public class UserController {
                 user.getPhone(),
                 user.getCustomerUid()
         ));
+    }
+
+    // 내 정보 수정
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponse> updateMyInfo(
+            @AuthenticationPrincipal LoginUserData loginUserData,
+            @RequestBody @Valid UserUpdateRequest requestDto) {
+
+        UserResponse response = userService.update(loginUserData.userId(), requestDto);
+        return ResponseEntity.ok(response);
     }
 }
