@@ -2,6 +2,21 @@ spring:
   application:
     name: paymentSystemServer
 
+portone:
+  api:
+    # PortOne 서버 API 기본 주소
+    base-url: ${PORTONE_API_BASE_URL}
+    # 서버가 PortOne과 통신할 때 쓰는 비밀키
+    secret: ${PORTONE_API_SECRET}
+  store:
+    # 브라우저 SDK 와 서버가 공통으로 쓰는 상점 ID
+    id: ${PORTONE_STORE_ID}
+  channel:
+    # 일반 카드 결제용 KG이니시스 채널키
+    kg-inicis: ${PORTONE_CHANNEL_KG}
+    # billingKey 발급용 토스 페이먼츠 채널키
+    toss: ${PORTONE_CHANNEL_TOSS}
+
 app:
   ui:
     branding:
