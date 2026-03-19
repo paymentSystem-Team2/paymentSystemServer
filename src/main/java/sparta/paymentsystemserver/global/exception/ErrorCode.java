@@ -25,7 +25,7 @@ public enum ErrorCode {
 //    상품 예외 (PROD###)
     PRODUCT_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "PROD001", "재고가 부족합니다"),
     INVALID_QUANTITY(HttpStatus.BAD_REQUEST,"PROD002", "수량은 1 이상이어야 합니다."),
-
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROD003" , "존재하지 않는 상품 ID입니다."),
 
 //    주문 예외 (ORD###)
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORD001", "주문을 찾을 수 없습니다."),
