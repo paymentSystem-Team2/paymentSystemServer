@@ -18,9 +18,10 @@ public class MembershipGrade {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 등급 이름
+    // 등급 이름 (Enum으로 변환)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)
-    private String membershipCode;
+    private MembershipGradeType membershipCode;
 
     @Column(nullable = false)
     private String name;
