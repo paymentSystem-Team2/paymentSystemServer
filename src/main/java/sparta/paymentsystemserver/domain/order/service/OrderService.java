@@ -17,6 +17,7 @@ import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.product.exception.ProductStockException;
 import sparta.paymentsystemserver.domain.product.repository.ProductRepository;
 import sparta.paymentsystemserver.domain.user.entity.User;
+import sparta.paymentsystemserver.domain.user.service.UserService;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
@@ -34,9 +35,10 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final PublicIdGenerator publicIdGenerator;
+    private final UserService userService;
 
-    public CreateOrderResponse createOrder(User user, CreateOrderRequest request){
-
+    public CreateOrderResponse createOrder(Long userId, CreateOrderRequest request){
+        User user = userService.findById(userId);
         // 서버가 직접 계산한 총 주문 금액
         long caculatedTotalAmount = 0L;
 
