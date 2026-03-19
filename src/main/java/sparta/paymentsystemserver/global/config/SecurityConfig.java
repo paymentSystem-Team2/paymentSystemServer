@@ -28,7 +28,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -41,7 +41,8 @@ public class SecurityConfig {
                         "/api/auth/login",
                         "/api/auth/refresh",
                         "/api/webhooks/**",
-                        "/api/public/**"
+                        "/api/public/**",
+                        "/actuator/health"
                 ).permitAll()
                 .anyRequest().authenticated()
         );
