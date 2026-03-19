@@ -27,3 +27,6 @@ logging:
 
 jwt:
   secret: ${JWT_SECRET}
+
+api:
+  base-url:
