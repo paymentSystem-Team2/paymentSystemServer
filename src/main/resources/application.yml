@@ -26,3 +26,6 @@ app:
       app-name: CommerceHub
       tagline: 통합 커머스 플랫폼
       logo-text: 🏪 CommerceHub
+
+server:
+  forward-headers-strategy: framework
