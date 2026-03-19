@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.global.config;
+package sparta.paymentsystemserver.global.config.properties;
 
 import lombok.Getter;
 import lombok.Setter;
