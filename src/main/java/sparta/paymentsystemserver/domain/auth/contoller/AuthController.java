@@ -8,13 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import sparta.paymentsystemserver.domain.auth.dto.LoginUser;
-import sparta.paymentsystemserver.domain.auth.dto.LoginUserResponse;
-import sparta.paymentsystemserver.domain.auth.dto.TokenResponse;
+import sparta.paymentsystemserver.domain.auth.dto.*;
 import sparta.paymentsystemserver.domain.auth.service.AuthService;
-import sparta.paymentsystemserver.domain.auth.dto.LoginRequest;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
-import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 
 import java.time.Duration;
 
@@ -26,8 +22,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signUp(@Valid @RequestBody UserRequest requestDto) {
-        UserResponse responseDto = authService.signUp(requestDto);
+    public ResponseEntity<SignupResponse> signUp(@Valid @RequestBody UserRequest requestDto) {
+        SignupResponse responseDto = authService.signUp(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 

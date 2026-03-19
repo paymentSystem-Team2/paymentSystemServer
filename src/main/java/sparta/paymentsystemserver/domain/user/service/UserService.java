@@ -1,9 +1,12 @@
 package sparta.paymentsystemserver.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.InternalException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sparta.paymentsystemserver.domain.auth.dto.SignupResponse;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
 import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 import sparta.paymentsystemserver.domain.user.dto.UserUpdateRequest;
@@ -14,6 +17,7 @@ import sparta.paymentsystemserver.domain.user.repository.UserRepository;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -24,7 +28,7 @@ public class UserService {
 
     // 회원가입: 이메일 중복 확인 후 사용자 저장
     @Transactional
-    public UserResponse save(UserRequest requestDto) {
+    public SignupResponse save(UserRequest requestDto) {
 
         // 이메일 중복 검사: 이미 존재하는 이메일 예외 발생
         if (userRepository.existsByEmail(requestDto.getEmail())) {
@@ -43,15 +47,15 @@ public class UserService {
                 requestDto.getPhone(),
                 customerUid
         );
-
-        // 사용자 저장 후 응답 DTO 반환
-        User savedUser = userRepository.save(user);
-        return new UserResponse(
-                savedUser.getId(),
-                savedUser.getName(),
-                savedUser.getEmail(),
-                savedUser.getPhone()
-        );
+        try {
+            userRepository.save(user);
+            return new SignupResponse(
+                    true, "성공적으로 회원 가입하였습니다."
+            );
+        }catch (Exception e){
+            log.error("[AUTH : 회원 가입 로직 중 에러 발생] " +  e.getMessage());
+            throw new InternalException("알수 없는 오류");
+        }
     }
 
     // 이메일로 사용자 조회 -> 없으면 UserNotFoundException 발생
