@@ -29,4 +29,4 @@ jwt:
   secret: ${JWT_SECRET}
 
 api:
-  base-url: https://test.2run2run.click
+  base-url:
