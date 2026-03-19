@@ -46,6 +46,18 @@ public class UserService {
                 passwordEncoder.encode(requestDto.getPassword()),
                 requestDto.getPhone(),
                 customerUid
+<<<<<<< feat/membership#41
+        );
+
+        // 사용자 저장 후 응답 DTO 반환
+        User savedUser = userRepository.save(user);
+        return new UserResponse(
+                savedUser.getId(),
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getPhone()
+=======
+>>>>>>> dev
         );
         try {
             userRepository.save(user);
