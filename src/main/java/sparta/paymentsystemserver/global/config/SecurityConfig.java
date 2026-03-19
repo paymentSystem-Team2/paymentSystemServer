@@ -40,7 +40,8 @@ public class SecurityConfig {
                         "/api/auth/signup",
                         "/api/auth/login",
                         "/api/auth/refresh",
-                        "/api/webhooks/**"
+                        "/api/webhooks/**",
+                        "/api/public/**"
                 ).permitAll()
                 .anyRequest().authenticated()
         );

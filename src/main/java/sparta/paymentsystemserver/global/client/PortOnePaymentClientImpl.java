@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
-import sparta.paymentsystemserver.global.config.PortOneProperties;
+import sparta.paymentsystemserver.global.config.properties.PortOneProperties;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 
 import java.util.Map;
