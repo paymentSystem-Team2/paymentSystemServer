@@ -9,7 +9,6 @@ import sparta.paymentsystemserver.domain.order.dto.CreateOrderResponse;
 import sparta.paymentsystemserver.domain.order.entity.Order;
 import sparta.paymentsystemserver.domain.order.entity.OrderItem;
 import sparta.paymentsystemserver.domain.order.entity.OrderStatus;
-import sparta.paymentsystemserver.domain.order.exception.OrderException;
 import sparta.paymentsystemserver.domain.order.repository.OrderItemRepository;
 import sparta.paymentsystemserver.domain.order.repository.OrderRepository;
 import sparta.paymentsystemserver.domain.product.entity.Product;
@@ -59,11 +58,6 @@ public class OrderService {
 
             // 서버 기준 총 주문 금액 계산
             caculatedTotalAmount += product.getPrice() * itemRequest.quantity();
-        }
-
-        // 클라이언트가 보낸 총 금액과 서버 계산 금액 비교
-        if (!request.totalAmount().equals(caculatedTotalAmount)){
-            throw new OrderException(ErrorCode.ORDER_AMOUNT_MISMATCH);
         }
 
         // 주문 ID , 주문 번호 생서
