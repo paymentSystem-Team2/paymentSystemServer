@@ -20,7 +20,7 @@ public class PaymentWebhookEvent extends BaseEntity {
     private Long id;
 
     // 포트원이 보낸 웹훅 고유 Id 중복 수신 방지 키
-    @Column(nullable = false, unique = false, length = 60)
+    @Column(nullable = false, unique = true, length = 60)
     private String webhookId;
 
     // 이 이벤트가 가리키는 내부 페이먼트아이디

@@ -252,7 +252,7 @@ api:
             - name: status
               type: string
               required: false
-              description: 결제 상태 (PENDING)
+              description: 결제 상태 (READY)
 
     confirm-payment:
       url: /api/payments/{paymentId}/confirm
@@ -268,6 +268,10 @@ api:
               type: boolean
               required: true
               description: 확정 성공 여부
+            - name: paymentId
+              type: string
+              required: true
+              description: 결제 생성 단계에서 서버가 발급한 공개 결제 ID
             - name: orderId
               type: string
               required: false
