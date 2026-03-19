@@ -39,7 +39,7 @@ public class OrderService {
     public CreateOrderResponse createOrder(Long userId, CreateOrderRequest request){
         User user = userService.findById(userId);
         // 서버가 직접 계산한 총 주문 금액
-        long caculatedTotalAmount = 0L;
+        long calculatedTotalAmount = 0L;
 
         // Order 저장 후 한 번에 저장할 OrderItem 목록
         List<OrderItem> orderItems = new ArrayList<>();
@@ -57,7 +57,7 @@ public class OrderService {
             }
 
             // 서버 기준 총 주문 금액 계산
-            caculatedTotalAmount += product.getPrice() * itemRequest.quantity();
+            calculatedTotalAmount += product.getPrice() * itemRequest.quantity();
         }
 
         // 주문 ID , 주문 번호 생서
@@ -70,7 +70,7 @@ public class OrderService {
                 orderId,
                 orderNumber,
                 user,
-                caculatedTotalAmount,
+                calculatedTotalAmount,
                 0L,
                 0L,
                 OrderStatus.PENDING_PAYMENT,
