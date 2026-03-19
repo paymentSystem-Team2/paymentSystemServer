@@ -30,11 +30,14 @@ public class JwtFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         String method = request.getMethod();
-
+        log.info("JWT Filter path: " + path);
         if (pathMatcher.match("/api/auth/login", path)) return true;
         if (pathMatcher.match("/api/auth/signup", path)) return true;
         if (pathMatcher.match("/api/auth/refresh", path)) return true;
-        if (pathMatcher.match("/actuator/**", path)) return true;
+        if (pathMatcher.match("/api/public/**", path)) return true;
+        if (pathMatcher.match("/actuator/health", path)) return true;
+        if (pathMatcher.match("/favicon.ico", path)) return true;
+        if (pathMatcher.match("/api/webhooks/**", path)) return true;
 
         // OPTIONS preflight 제외(프론트 CORS)
         return "OPTIONS".equalsIgnoreCase(method);
