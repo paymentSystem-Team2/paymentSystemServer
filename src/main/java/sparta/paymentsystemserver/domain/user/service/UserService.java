@@ -67,29 +67,42 @@ public class UserService {
         );
     }
 
-    // ID 로 사용자 조회 -> 없으면 UserNotFoundException 발생
     @Transactional(readOnly = true)
-    public User findById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
+    public UserResponse getUser(Long userId) {
+        User user = findById(userId);
+
+        return new UserResponse(
+                user.getCustomerUid(),
+                user.getEmail(),
+                user.getName(),
+                user.getPhone(),
+                user.getPointBalance()
         );
     }
 
     @Transactional
     public UserResponse update(Long userId, UserUpdateRequest requestDto) {
         // userId로 사용자 조회, 없으면 UserNotFoundException 발생
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
+        User user = findById(userId);
 
         // null이 아닌 필드만 선택적으로 업데이트 (PATCH 방식)
         user.update(requestDto.getName(), requestDto.getPhone());
 
         // 수정된 사용자 정보를 DTO로 변환하여 반환
         return new UserResponse(
-                user.getId(),
-                user.getName(),
+                user.getCustomerUid(),
                 user.getEmail(),
-                user.getPhone()
+                user.getName(),
+                user.getPhone(),
+                user.getPointBalance()
+        );
+    }
+
+    // ID 로 사용자 조회 -> 없으면 UserNotFoundException 발생
+    @Transactional(readOnly = true)
+    public User findById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
         );
     }
 }

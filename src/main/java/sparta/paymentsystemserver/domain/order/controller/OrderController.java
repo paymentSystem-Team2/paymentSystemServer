@@ -22,7 +22,6 @@ public class OrderController {
 
     @PostMapping
     public CreateOrderResponse createOrder(
-
             // 로그인한 사용자
             @AuthenticationPrincipal LoginUserData loginUserData,
             // 요청 바디 검증

@@ -23,13 +23,8 @@ public class UserController {
     public ResponseEntity<UserResponse> getMyInfo(
             @AuthenticationPrincipal LoginUserData loginUserData) {
         // 토큰에서 꺼낸 userId로 사용자 조회
-        User user = userService.findById(loginUserData.userId());
-        return ResponseEntity.ok(new UserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone()
-        ));
+        UserResponse userResponse = userService.getUser(loginUserData.userId());
+        return ResponseEntity.ok(userResponse);
     }
 
     // 내 정보 수정

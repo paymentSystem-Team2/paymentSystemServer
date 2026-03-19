@@ -93,11 +93,6 @@ public class User extends BaseEntity {
         this.pointBalance -= amount;
     }
 
-    // 사용자의 멤버십 등급 코드 반환
-    public MembershipGradeType getMembershipGrade() {
-        return this.membershipGrade;
-    }
-
     // 누적 결제 금액 증가
     public void addTotalPaidAmount(Long amount) {
         this.totalPaidAmount += amount;
