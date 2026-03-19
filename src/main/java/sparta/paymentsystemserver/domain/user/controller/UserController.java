@@ -28,8 +28,7 @@ public class UserController {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getPhone(),
-                user.getCustomerUid()
+                user.getPhone()
         ));
     }
 

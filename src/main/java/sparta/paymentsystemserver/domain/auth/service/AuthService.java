@@ -6,11 +6,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sparta.paymentsystemserver.domain.auth.dto.LoginRequest;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUser;
+import sparta.paymentsystemserver.domain.auth.dto.SignupResponse;
 import sparta.paymentsystemserver.domain.auth.dto.TokenResponse;
 import sparta.paymentsystemserver.domain.auth.exception.InvalidTokenException;
 import sparta.paymentsystemserver.domain.auth.exception.PasswordNotFoundException;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
-import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.service.UserService;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
@@ -81,7 +81,7 @@ public class AuthService {
         }
     }
 
-    public UserResponse signUp(UserRequest requestDto) {
+    public SignupResponse signUp(UserRequest requestDto) {
        return userService.save(requestDto);
     }
 }
