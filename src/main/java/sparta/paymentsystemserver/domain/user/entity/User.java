@@ -48,9 +48,9 @@ public class User extends BaseEntity {
 
     // MembershipGrade 연관관계 매핑
     // membershipGrade(Enum) 컬럼을 공유하여 조인 (읽기 전용)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "membership_grade", referencedColumnName = "membership_code", insertable = false, updatable = false)
-    private MembershipGrade membershipGradePolicy;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "membership_grade", referencedColumnName = "membership_code", insertable = false, updatable = false)
+//    private MembershipGrade membershipGradePolicy;
 
     // 누적 결제 금액 (등급 재계산의 기준이 되는 값)
     @Column(nullable = false)
@@ -99,15 +99,19 @@ public class User extends BaseEntity {
         this.pointBalance -= amount;
     }
 
+    public void subtractTotalPaidAmount(Long amount) {
+        this.totalPaidAmount = Math.max(this.totalPaidAmount - amount, 0L);
+    }
+
     // 사용자의 멤버십 등급 코드 반환
     public MembershipGradeType getMembershipGrade() {
         return this.membershipGrade;
     }
 
     // 현재 등급 정책 반환 (연관관계 매핑으로 추가 DB 조회 없이 가져옴)
-    public MembershipGrade getMembershipGradePolicy() {
-        return this.membershipGradePolicy;
-    }
+//    public MembershipGrade getMembershipGradePolicy() {
+//        return this.membershipGradePolicy;
+//    }
 
     // 누적 결제 금액 증가
     public void addTotalPaidAmount(Long amount) {

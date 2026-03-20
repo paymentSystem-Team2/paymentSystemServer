@@ -41,14 +41,14 @@ public class MembershipService {
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
 
         // User에서 바로 MembershipGrade 꺼내기(추가 DB 조회X)
-        MembershipGrade policy = user.getMembershipGradePolicy();
+//        MembershipGrade policy = user.getMembershipGradePolicy();
 
-        if (policy == null) {
-            throw new MembershipException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND);
-        }
+//        if (policy == null) {
+//            throw new MembershipException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND);
+//        }
 
         // 사용자 정보 + 해당 등급 정책 → 응답 DTO 조합
-        return MyMembershipResponse.of(user, policy);
+        return MyMembershipResponse.of(user);
     }
 
     // 누적 결제금액 기준 등급 재계산 (결제/환불 완료 후 호출)
