@@ -6,6 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.auth.dto.SignupResponse;
+import sparta.paymentsystemserver.domain.membership.entity.MembershipGradePolicy;
+import sparta.paymentsystemserver.domain.membership.entity.MembershipGradeType;
+import sparta.paymentsystemserver.domain.membership.exception.MembershipNotFoundException;
+import sparta.paymentsystemserver.domain.membership.service.MembershipService;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
 import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 import sparta.paymentsystemserver.domain.user.dto.UserUpdateRequest;
@@ -16,6 +20,9 @@ import sparta.paymentsystemserver.domain.user.repository.UserRepository;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PublicIdGenerator publicIdGenerator;
+    private final MembershipService membershipService;
 
     // 회원가입: 이메일 중복 확인 후 사용자 저장
     @Transactional
@@ -96,5 +104,18 @@ public class UserService {
         return userRepository.findByEmail(email).orElseThrow(
                 () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
         );
+    }
+
+    @Transactional
+    public void calculateGrade(User user) {
+        List<MembershipGradePolicy> membershipGradePolicyList = membershipService.findPolicyByType();
+
+        MembershipGradeType newGrade = membershipGradePolicyList.stream()
+                .filter(policy -> user.getTotalPaidAmount() >= policy.getMinTotalPaidAmount())
+                .max(Comparator.comparing(MembershipGradePolicy::getMinTotalPaidAmount))
+                .map(MembershipGradePolicy::getMembershipCode)
+                .orElse(MembershipGradeType.NORMAL);
+
+        user.updateGrade(newGrade);
     }
 }

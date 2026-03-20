@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sparta.paymentsystemserver.domain.membership.entity.MembershipGrade;
+import sparta.paymentsystemserver.domain.membership.entity.MembershipGradePolicy;
 import sparta.paymentsystemserver.domain.membership.repository.MembershipGradeRepository;
 import sparta.paymentsystemserver.domain.order.entity.Order;
 import sparta.paymentsystemserver.domain.point.dto.response.PointHistoryResponse;
@@ -45,16 +45,16 @@ public class PointService {
     public void earnPoints(Long userId, Order order, Long paymentAmount) {
         User user = userService.findById(userId);
 
-        List<MembershipGrade> policies = membershipGradeRepository
+        List<MembershipGradePolicy> policies = membershipGradeRepository
                 .findAllByOrderByMinTotalPaidAmountAsc();
 
-        MembershipGrade membershipGrade = policies.stream()
+        MembershipGradePolicy membershipGradePolicy = policies.stream()
                 .filter(p -> p.getMembershipCode() == user.getMembershipGrade())
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND.getMessage()));
 
         long points = BigDecimal.valueOf(paymentAmount)
-                .multiply(membershipGrade.getEarnRate())
+                .multiply(membershipGradePolicy.getEarnRate())
                 .longValue();
 
         if (points > 0) {
@@ -72,7 +72,7 @@ public class PointService {
         }
 
         user.addTotalPaidAmount(paymentAmount);
-        user.recalculateMembershipGrade(policies);
+        userService.calculateGrade(user);
 
         log.info("[포인트 적립] userId: {}, 결제금액: {}, 적립포인트: {}, 등급: {}",
                 userId, paymentAmount, points, user.getMembershipGrade());
@@ -152,11 +152,8 @@ public class PointService {
                     userId, target.getPoints());
         }
 
-        List<MembershipGrade> policies = membershipGradeRepository
-                .findAllByOrderByMinTotalPaidAmountAsc();
-
         user.subtractTotalPaidAmount(paymentAmount);
-        user.recalculateMembershipGrade(policies);
+        userService.calculateGrade(user);
 
         log.info("[환불 후 등급 재계산] userId: {}, 누적결제금액: {}, 등급: {}",
                 userId, user.getTotalPaidAmount(), user.getMembershipGrade());

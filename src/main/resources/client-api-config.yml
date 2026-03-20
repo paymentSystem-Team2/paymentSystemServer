@@ -86,7 +86,7 @@ api:
               description: 에러 메시지 (실패 시)
 
     get-current-user:
-      url: /api/users/me
+      url: /api/users/me/info
       method: GET
       description: 현재 로그인한 사용자 정보 조회
       response:
