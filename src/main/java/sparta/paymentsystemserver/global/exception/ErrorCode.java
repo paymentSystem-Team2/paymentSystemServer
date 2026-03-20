@@ -39,11 +39,11 @@ public enum ErrorCode {
     INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "PAY003", "보유 포인트가 부족합니다."),
     PAYMENT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "PAY004", "PortOne 결제 검증에 실패했습니다."),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAY005", "결제 승인 금액이 서버 계산 금액과 일치하지 않습니다."),
-    PAYMENT_CONFIRM_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "PAY006", "확정할 수 없는 결제 상태입니다.");
+    PAYMENT_CONFIRM_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "PAY006", "확정할 수 없는 결제 상태입니다."),
 
 
 //    포인트 예외 (PNT###)
-
+    MEMBERSHIP_POLICY_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "MEM001", "등급 정책을 찾을 수 없습니다.");
 
 //    멤버십 예외 (MEM###)
 

@@ -51,9 +51,8 @@ public class UserService {
         try {
             userRepository.save(user);
             return new SignupResponse(
-                    true, "성공적으로 회원 가입하였습니다."
-            );
-        }catch (Exception e){
+                    true, "성공적으로 회원 가입하였습니다.");
+        } catch (Exception e){
             log.error("[AUTH : 회원 가입 로직 중 에러 발생] " +  e.getMessage());
             throw new InternalException("알수 없는 오류");
         }
