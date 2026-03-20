@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,12 +15,14 @@ import java.util.List;
 public class DataInitializer implements ApplicationRunner {
 
     private final JdbcTemplate jdbcTemplate;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         try {
             insertProducts();
+            user();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,6 +47,47 @@ public class DataInitializer implements ApplicationRunner {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO products (product_id, name, price, stock, description, status, category) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                batchArgs
+        );
+    }
+
+    private void user() {
+        Long userCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users",
+                Long.class
+        );
+
+        if (userCount != null && userCount > 0) {
+            return;
+        }
+
+        List<Object[]> batchArgs = List.of(
+                new Object[]{
+                        "admin",
+                        "admin@test.com",
+                        passwordEncoder.encode("admin"),
+                        "cust_001",
+                        0L,
+                        "NORMAL",
+                        0L,
+                        "010-1111-1111"
+                },
+                new Object[]{
+                        "admin1",
+                        "admin1@test.com",
+                        passwordEncoder.encode("admin"),
+                        "cust_002",
+                        1000L,
+                        "VIP",
+                        300000L,
+                        "010-2222-2222"
+                }
+        );
+
+        jdbcTemplate.batchUpdate(
+                "INSERT INTO users " +
+                        "(name, email, password, customer_uid, point_balance, membership_grade, total_paid_amount, phone) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 batchArgs
         );
     }

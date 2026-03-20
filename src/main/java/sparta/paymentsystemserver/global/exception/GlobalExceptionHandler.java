@@ -17,6 +17,15 @@ import java.util.List;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleMethodArgumentException(Exception exception) {
+        log.error("[API - ERROR] 발생 원인: ", exception);
+        ErrorCode errorcode = ErrorCode.INVALID_INPUT_VALUE;
+        return ResponseEntity
+                .status(errorcode.getStatus())
+                .body(ApiResponse.fail(errorcode));
+    }
+
 //    Bean Validation 예외 로직 부분
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleMethodArgumentException(MethodArgumentNotValidException exception) {
