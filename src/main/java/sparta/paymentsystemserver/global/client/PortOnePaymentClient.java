@@ -32,7 +32,8 @@ public interface PortOnePaymentClient {
         // PortOne 결제 취소 결과 처리 예시 기준으로
         // 취소 완료는 cancellation.status == SUCCEEDED 로 판단합니다.
         public boolean isCancelled() {
-            return "SUCCEEDED".equalsIgnoreCase(status);
+            return "CANCELED".equalsIgnoreCase(status)
+                    || "SUCCEEDED".equalsIgnoreCase(status);
         }
     }
 }

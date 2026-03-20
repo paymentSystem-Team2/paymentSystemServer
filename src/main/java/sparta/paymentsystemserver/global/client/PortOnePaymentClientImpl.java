@@ -31,19 +31,30 @@ public class PortOnePaymentClientImpl implements PortOnePaymentClient {
                     .get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/payments/{paymentId}")
+                            .queryParam("storeId", portOneProperties.getStore().getId())
                             .build(paymentId))
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
                     });
 
+            Map<String, Object> data = nestedMap(body, "data");
+            Map<String, Object> payment = nestedMap(data, "payment");
+            if (payment == null) {
+                payment = nestedMap(body, "payment");
+            }
+
+            Map<String, Object> source = payment != null ? payment : body;
+
             return new PortOnePaymentInfo(
-                    stringValue(body, "paymentId", paymentId),
+                    stringValue(source, "paymentId", paymentId),
                     firstNonBlank(
+                            stringValue(source, "txId", null),
+                            stringValue(source, "transactionId", null),
                             stringValue(body, "txId", null),
                             stringValue(body, "transactionId", null)
                     ),
-                    stringValue(body, "status", "UNKNOWN"),
-                    firstLong(body, "amount", "totalAmount", "paidAmount")
+                    stringValue(source, "status", "UNKNOWN"),
+                    firstLong(source, "amount", "totalAmount", "paidAmount")
             );
         } catch (RestClientResponseException exception) {
             throw new PaymentException(ErrorCode.PAYMENT_VERIFICATION_FAILED);
@@ -60,32 +71,34 @@ public class PortOnePaymentClientImpl implements PortOnePaymentClient {
                             .path("/payments/{paymentId}/cancel")
                             .build(paymentId))
                     .body(Map.of(
+                            "storeId", portOneProperties.getStore().getId(),
                             "reason", reason == null || reason.isBlank() ? "사용자 요청 환불" : reason
                     ))
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
                     });
 
-            Map<String, Object> cancellation = nestedMap(body, "cancellation");
+            Map<String, Object> data = nestedMap(body, "data");
+            Map<String, Object> cancellation = nestedMap(data, "cancellation");
+            if (cancellation == null) {
+                cancellation = nestedMap(body, "cancellation");
+            }
+
+            Map<String, Object> source = cancellation != null ? cancellation : body;
 
             return new PortOneCancelInfo(
                     stringValue(body, "paymentId", paymentId),
                     firstNonBlank(
-                            stringValue(cancellation, "cancellationId", null),
-                            stringValue(cancellation, "cancelId", null),
-                            stringValue(body, "cancellationId", null),
-                            stringValue(body, "cancelId", null)
+                            stringValue(source, "cancelId", null),
+                            stringValue(source, "cancellationId", null),
+                            stringValue(body, "cancelId", null),
+                            stringValue(body, "cancellationId", null)
                     ),
                     firstNonBlank(
-                            stringValue(cancellation, "status", null),
+                            stringValue(source, "status", null),
                             stringValue(body, "status", "UNKNOWN")
                     ),
-                    firstLong(
-                            cancellation != null ? cancellation : body,
-                            "cancelledAmount",
-                            "canceledAmount",
-                            "amount"
-                    )
+                    firstLong(source, "canceledAmount", "cancelledAmount", "amount")
             );
         } catch (RestClientResponseException exception) {
             throw new PaymentException(ErrorCode.REFUND_PROCESS_FAILED);
