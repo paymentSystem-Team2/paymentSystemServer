@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
 import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 import sparta.paymentsystemserver.domain.user.dto.UserUpdateRequest;
-import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.service.UserService;
 
 @RestController
