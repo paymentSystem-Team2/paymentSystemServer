@@ -9,6 +9,7 @@ import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.payment.repository.RefundRepository;
 import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
+import sparta.paymentsystemserver.global.client.dto.PortOneCancelInfo;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
@@ -56,19 +57,17 @@ public class RefundService {
         String providerRefundId = "INTERNAL";
         long refundAmount = payment.getExternalAmount();
 
-        // PortOne 결제인 경우 외부 취소 API 호출
         if (payment.getProvider() == PaymentProvider.PORTONE) {
-            PortOnePaymentClient.PortOneRefundInfo refundInfo =
+            PortOneCancelInfo cancelInfo =
                     portOnePaymentClient.cancelPayment(payment.getPaymentId(), reason);
 
-            if (!refundInfo.isCancelled()) {
+            if (!cancelInfo.isCancelled()) {
                 throw new PaymentException(ErrorCode.REFUND_PROCESS_FAILED);
             }
 
-            providerRefundId = refundInfo.refundId();
-            refundAmount = refundInfo.cancelledAmount();
+            providerRefundId = cancelInfo.cancellationId();
+            refundAmount = cancelInfo.cancelledAmount();
         }
-
         // 환불은 단순 상태 변경이 아니라서 별도 도메인 이력으로 관리한다
         Refund refund = Refund.create(
                 publicIdGenerator.generate("REF"),

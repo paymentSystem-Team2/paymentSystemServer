@@ -46,8 +46,20 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refresh(
-            @RequestHeader("Refresh-Token") String refreshToken) {
-        return ResponseEntity.ok(authService.reissue(refreshToken));
+    public ResponseEntity<Void> refresh(
+            @RequestHeader("Refresh-Token") String refreshToken, HttpServletResponse response) {
+        TokenResponse tokenResponse = authService.reissue(refreshToken);
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenResponse.newRefreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        return ResponseEntity.status(HttpStatus.OK).header("Authorization" ,"Bearer " + tokenResponse.newAccessToken()).build();
     }
 }

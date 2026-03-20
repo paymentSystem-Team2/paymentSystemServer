@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Getter
 @Table(name = "orders")
 @NoArgsConstructor
-@AllArgsConstructor
 public class Order {
 
     @Id
@@ -49,14 +48,28 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime orderedAt;
 
+    @Column
+    private LocalDateTime completedAt;
+
+    public Order(String orderId, String orderNumber, User user, Long totalAmount, Long usedPoints, Long pointDiscountAmount, OrderStatus status, LocalDateTime orderedAt) {
+        this.orderId = orderId;
+        this.orderNumber = orderNumber;
+        this.user = user;
+        this.totalAmount = totalAmount;
+        this.usedPoints = usedPoints;
+        this.pointDiscountAmount = pointDiscountAmount;
+        this.status = status;
+        this.orderedAt = orderedAt;
+    }
+
     // 결제 성공 시 > 주문 완료 상태로 변경
     public void complete() {
         this.status = OrderStatus.PAID;
+        this.completedAt = LocalDateTime.now();
     }
 
     // 환불 발생 > 환불 상태로 변경
     public void refund() {
         this.status = OrderStatus.CANCELLED;
     }
-
 }

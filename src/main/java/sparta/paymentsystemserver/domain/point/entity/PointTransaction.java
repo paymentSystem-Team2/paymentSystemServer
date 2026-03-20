@@ -34,26 +34,70 @@ public class PointTransaction extends BaseEntity {
     @Column(nullable = false)
     private PointTransactionType type;
 
-//    이번 거래 포인트 증감량
+//    거래 포인트 증감량
     @Column(nullable = false)
     private Long points;
-
-//    이번 거래 후의 잔액 스냅샷
-    @Column(nullable = false)
-    private Long balanceSnapshot;
 
     private LocalDateTime expiresAt;
     private LocalDateTime expirationProcessedAt;
 
-    public static PointTransaction earned(String id, User user, Order order, Long points, Long balanceSnapshot, LocalDateTime expiresAt) {
+//    포인트 적립
+    public static PointTransaction earned(String id, User user, Order order, Long points, LocalDateTime expiresAt) {
         PointTransaction pt = new PointTransaction();
         pt.pointTransactionId = id;
         pt.user = user;
         pt.order = order;
         pt.type = PointTransactionType.EARNED;
         pt.points = points;
-        pt.balanceSnapshot = balanceSnapshot;
         pt.expiresAt = expiresAt;
         return pt;
+    }
+
+//    포인트 사용
+    public static PointTransaction spend(String id, User user, Order order, Long points) {
+        PointTransaction pt = new PointTransaction();
+        pt.pointTransactionId = id;
+        pt.user = user;
+        pt.order = order;
+        pt.type = PointTransactionType.SPENT;
+        pt.points = points;
+        return pt;
+    }
+
+//    환불 시 포인트 복구
+    public static PointTransaction restored(String id, User user, Order order, Long points) {
+        PointTransaction pt = new PointTransaction();
+        pt.pointTransactionId = id;
+        pt.user = user;
+        pt.order = order;
+        pt.type = PointTransactionType.RESTORED;
+        pt.points = points;
+        return pt;
+    }
+
+//    환불 시 적립 포인트 취소
+    public static PointTransaction earnCanceled(String id, User user, Order order, Long points) {
+        PointTransaction pt = new PointTransaction();
+        pt.pointTransactionId = id;
+        pt.user = user;
+        pt.order = order;
+        pt.type = PointTransactionType.EARN_CANCELLED;
+        pt.points = points;
+        return pt;
+    }
+
+//    스케쥴러 만료 처리
+    public static PointTransaction expired(String id, User user, Long points) {
+        PointTransaction pt = new PointTransaction();
+        pt.pointTransactionId = id;
+        pt.user = user;
+        pt.type = PointTransactionType.EXPIRED;
+        pt.points = points;
+        return pt;
+    }
+
+//    소멸 기록
+    public void markExpired(LocalDateTime processedAt) {
+        this.expirationProcessedAt = processedAt;
     }
 }

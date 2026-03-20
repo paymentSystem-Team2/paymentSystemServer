@@ -1,6 +1,7 @@
 package sparta.paymentsystemserver.domain.user.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -96,6 +97,10 @@ public class User extends BaseEntity {
     // 누적 결제 금액 증가
     public void addTotalPaidAmount(Long amount) {
         this.totalPaidAmount += amount;
+    }
+
+    public void subtractTotalPaidAmount(Long amount) {
+        this.totalPaidAmount = Math.max(this.totalPaidAmount - amount, 0L);
     }
 
     // 누적 결제 금액 기준 멤버십 등급 책정
