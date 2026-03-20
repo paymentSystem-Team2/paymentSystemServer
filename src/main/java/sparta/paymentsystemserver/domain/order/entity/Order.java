@@ -51,12 +51,12 @@ public class Order {
 
     // 결제 성공 시 > 주문 완료 상태로 변경
     public void complete() {
-        this.status = OrderStatus.COMPLETED;
+        this.status = OrderStatus.PAID;
     }
 
     // 환불 발생 > 환불 상태로 변경
     public void refund() {
-        this.status = OrderStatus.REFUNDED;
+        this.status = OrderStatus.CANCELLED;
     }
 
 }

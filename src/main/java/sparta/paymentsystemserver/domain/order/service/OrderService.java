@@ -72,7 +72,7 @@ public class OrderService {
                 calculatedTotalAmount,
                 0L,
                 0L,
-                OrderStatus.PENDING_PAYMENT,
+                OrderStatus.PENDING,
                 LocalDateTime.now()
         );
 
