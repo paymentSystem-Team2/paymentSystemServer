@@ -109,15 +109,20 @@ public class OrderService {
     }
 
     // 주문 목록 조회
-    public record GetOrderListResponse(
-            String orderId,
-            String orderNumber,
-            Long totalAmount,
-            Long usedPoints,
-            Long pointDiscountAmount,
-            String status,
-            LocalDateTime orderedAt
-    ) {
+    @Transactional(readOnly = true)
+    public List<GetOrderListResponse> getMyOrders(User user) {
+        return orderRepository.findByUser_IdOrderByOrderedAtDesc(user.getId())
+                .stream()
+                .map(order -> new GetOrderListResponse(
+                        order.getOrderId(),
+                        order.getOrderNumber(),
+                        order.getTotalAmount(),
+                        order.getUsedPoints(),
+                        order.getPointDiscountAmount(),
+                        order.getStatus().name(),
+                        order.getOrderedAt()
+                ))
+                .toList();
     }
 
     // 주문 상세 조회

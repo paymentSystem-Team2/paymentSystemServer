@@ -2,15 +2,18 @@ package sparta.paymentsystemserver.domain.order.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
+import sparta.paymentsystemserver.domain.order.dto.GetOrderDetailResponse;
+import sparta.paymentsystemserver.domain.order.dto.GetOrderListResponse;
 import sparta.paymentsystemserver.domain.order.service.OrderService;
 import sparta.paymentsystemserver.domain.order.dto.CreateOrderRequest;
 import sparta.paymentsystemserver.domain.order.dto.CreateOrderResponse;
+import sparta.paymentsystemserver.domain.user.entity.User;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,4 +33,22 @@ public class OrderController {
         // 주문 생성 서비스 호출
         return orderService.createOrder(loginUserData.userId(), request);
     }
+
+    // 주문 목록 조회
+    @GetMapping
+    public ResponseEntity<List<GetOrderListResponse>> getMyOrders(
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(orderService.getMyOrders(user));
+    }
+
+    // 주문 상세 조회
+    @GetMapping("/{orderId}")
+    public ResponseEntity<GetOrderDetailResponse> getMyOrderDetail(
+            @AuthenticationPrincipal User user,
+            @PathVariable String orderId
+    ) {
+        return ResponseEntity.ok(orderService.getMyOrderDetail(user, orderId));
+    }
+
 }
