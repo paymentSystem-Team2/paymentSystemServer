@@ -9,6 +9,7 @@ import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.payment.repository.RefundRepository;
 import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
+import sparta.paymentsystemserver.global.client.dto.PortOneCancelInfo;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
@@ -57,7 +58,7 @@ public class RefundService {
         long refundAmount = payment.getExternalAmount();
 
         if (payment.getProvider() == PaymentProvider.PORTONE) {
-            PortOnePaymentClient.PortOneCancelInfo cancelInfo =
+            PortOneCancelInfo cancelInfo =
                     portOnePaymentClient.cancelPayment(payment.getPaymentId(), reason);
 
             if (!cancelInfo.isCancelled()) {

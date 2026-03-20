@@ -17,6 +17,7 @@ import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.repository.UserRepository;
 import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
+import sparta.paymentsystemserver.global.client.dto.PortOnePaymentInfo;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
@@ -160,7 +161,7 @@ public class PaymentService {
         }
 
         // 포트원 재조회
-        PortOnePaymentClient.PortOnePaymentInfo paymentInfo =
+        PortOnePaymentInfo paymentInfo =
                 portOnePaymentClient.getPayment(payment.getPaymentId());
 
         if (!paymentInfo.isPaid()) {
