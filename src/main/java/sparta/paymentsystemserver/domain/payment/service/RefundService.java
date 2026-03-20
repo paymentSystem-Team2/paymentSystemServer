@@ -67,10 +67,6 @@ public class RefundService {
             providerRefundId = cancelInfo.cancellationId();
             refundAmount = cancelInfo.cancelledAmount();
         }
-
-        providerRefundId = cancelInfo.cancellationId();
-        refundAmount = cancelInfo.cancelledAmount();
-
         // 환불은 단순 상태 변경이 아니라서 별도 도메인 이력으로 관리한다
         Refund refund = Refund.create(
                 publicIdGenerator.generate("REF"),
