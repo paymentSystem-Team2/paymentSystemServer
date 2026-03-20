@@ -13,7 +13,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // 주문번호로 조회
     Optional<Order> findByOrderNumber(String orderNumber);
 
-    // 내 주문 목록 조회 (마이페이지)
-    List<Order> findByUserId(Long userId);
+    // 로그인한 사용자의 주문 목록 조회 (최신순)
+    List<Order> findByUserIdOrderByOrderedAtDesc(Long userId);
 
 }
