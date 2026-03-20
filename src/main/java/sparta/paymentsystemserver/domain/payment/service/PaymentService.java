@@ -49,7 +49,7 @@ public class PaymentService {
         }
 
         // 결제 대기 상태가 아닌 주문은 결제 생성 불가
-        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+        if (order.getStatus() != OrderStatus.PENDING) {
             throw new PaymentException(ErrorCode.ORDER_NOT_PAYABLE);
         }
 
