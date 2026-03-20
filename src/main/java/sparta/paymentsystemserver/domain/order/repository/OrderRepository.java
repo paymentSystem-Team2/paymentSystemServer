@@ -14,6 +14,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNumber(String orderNumber);
 
     // 로그인한 사용자의 주문 목록 조회 (최신순)
-    List<Order> findByUser_IdOrderByOrderedAtDesc(Long userId);
+    List<Order> findByUserIdOrderByOrderedAtDesc(Long userId);
 
 }

@@ -111,7 +111,7 @@ public class OrderService {
     // 주문 목록 조회
     @Transactional(readOnly = true)
     public List<GetOrderListResponse> getMyOrders(Long userId) {
-        return orderRepository.findByUser_IdOrderByOrderedAtDesc(userId)
+        return orderRepository.findByUserIdOrderByOrderedAtDesc(userId)
                 .stream()
                 .map(order -> new GetOrderListResponse(
                         order.getOrderNumber(),
