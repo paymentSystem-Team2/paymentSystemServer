@@ -114,7 +114,7 @@ public class UserService {
                 .filter(policy -> user.getTotalPaidAmount() >= policy.getMinTotalPaidAmount())
                 .max(Comparator.comparing(MembershipGradePolicy::getMinTotalPaidAmount))
                 .map(MembershipGradePolicy::getMembershipCode)
-                .orElseThrow(() -> new MembershipNotFoundException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND));
+                .orElse(MembershipGradeType.NORMAL);
 
         user.updateGrade(newGrade);
     }
