@@ -40,17 +40,26 @@ public class MembershipService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // 정책 전체 목록 조회 (DB 1번만 조회)
-        List<MembershipGrade> policies = membershipGradeRepository
-                .findAllByOrderByMinTotalPaidAmountAsc();
+        // User에서 바로 MembershipGrade 꺼내기(추가 DB 조회X)
+        MembershipGrade policy = user.getMembershipGradePolicy();
 
-        // 사용자의 현재 등급과 일치하는 정책 하나만 꺼내기
-        MembershipGrade policy = policies.stream()
-                .filter(p -> p.getMembershipCode() == user.getMembershipGrade())
-                .findFirst()
-                .orElseThrow(() -> new MembershipException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND));
+        if (policy == null) {
+            throw new MembershipException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND);
+        }
 
         // 사용자 정보 + 해당 등급 정책 → 응답 DTO 조합
         return MyMembershipResponse.of(user, policy);
+    }
+
+    // 누적 결제금액 기준 등급 재계산 (결제/환불 완료 후 호출)
+    @Transactional
+    public void recalculate(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        List<MembershipGrade> policies = membershipGradeRepository
+                .findAllByOrderByMinTotalPaidAmountAsc();
+
+        user.recalculateMembershipGrade(policies);
     }
 }

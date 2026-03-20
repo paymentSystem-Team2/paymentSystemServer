@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import sparta.paymentsystemserver.domain.auth.exception.AuthException;
+import sparta.paymentsystemserver.domain.membership.exception.MembershipException;
 import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.user.exception.UserException;
@@ -78,5 +79,11 @@ public class GlobalExceptionHandler {
 
 
 //    멤버십 예외 로직 부분
-
+    @ExceptionHandler(MembershipException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleMembershipException(MembershipException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity
+            .status(errorCode.getStatus())
+            .body(ApiResponse.fail(errorCode));
+}
 }
