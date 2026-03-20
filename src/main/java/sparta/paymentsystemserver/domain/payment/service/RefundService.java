@@ -57,17 +57,15 @@ public class RefundService {
         long refundAmount = payment.getExternalAmount();
 
         // PortOne 결제인 경우 외부 취소 API 호출
-        if (payment.getProvider() == PaymentProvider.PORTONE) {
-            PortOnePaymentClient.PortOneRefundInfo refundInfo =
-                    portOnePaymentClient.cancelPayment(payment.getPaymentId(), reason);
+        PortOnePaymentClient.PortOneCancelInfo cancelInfo =
+                portOnePaymentClient.cancelPayment(payment.getPaymentId(), reason);
 
-            if (!refundInfo.isCancelled()) {
-                throw new PaymentException(ErrorCode.REFUND_PROCESS_FAILED);
-            }
-
-            providerRefundId = refundInfo.refundId();
-            refundAmount = refundInfo.cancelledAmount();
+        if (!cancelInfo.isCancelled()) {
+            throw new PaymentException(ErrorCode.REFUND_PROCESS_FAILED);
         }
+
+        providerRefundId = cancelInfo.cancellationId();
+        refundAmount = cancelInfo.cancelledAmount();
 
         // 환불은 단순 상태 변경이 아니라서 별도 도메인 이력으로 관리한다
         Refund refund = Refund.create(

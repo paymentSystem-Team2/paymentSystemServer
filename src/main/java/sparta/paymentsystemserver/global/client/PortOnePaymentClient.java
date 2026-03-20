@@ -8,7 +8,7 @@ public interface PortOnePaymentClient {
     PortOnePaymentInfo getPayment(String paymentId);
 
     // paymentId 기준으로 전액 환불 요청
-    PortOneRefundInfo cancelPayment(String paymentId, String reason);
+    PortOneCancelInfo cancelPayment(String paymentId, String reason);
 
     record PortOnePaymentInfo(
             String paymentId,
@@ -18,22 +18,21 @@ public interface PortOnePaymentClient {
     ) {
         // 포트원 응답이 결제 완료 상태인지 판단하는 메서드
         public boolean isPaid() {
-            return "PAID".equalsIgnoreCase(status) || "SUCCEEDED".equalsIgnoreCase(status);
+            return "PAID".equalsIgnoreCase(status);
         }
     }
 
     // 포트원 환불 응답 중 서버가 필요한 정보 담음
-    record PortOneRefundInfo(
+    record PortOneCancelInfo(
             String paymentId,
-            String refundId,
+            String cancellationId,
             String status,
             long cancelledAmount
     ) {
-        // PortOne 응답이 환불 완료 상태인지 판단
+        // PortOne 결제 취소 결과 처리 예시 기준으로
+        // 취소 완료는 cancellation.status == SUCCEEDED 로 판단합니다.
         public boolean isCancelled() {
-            return "CANCELLED".equalsIgnoreCase(status)
-                    || "PARTIAL_CANCELLED".equalsIgnoreCase(status)
-                    || "REFUNDED".equalsIgnoreCase(status);
+            return "SUCCEEDED".equalsIgnoreCase(status);
         }
     }
 }

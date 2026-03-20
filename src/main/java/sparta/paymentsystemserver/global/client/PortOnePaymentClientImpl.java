@@ -27,22 +27,15 @@ public class PortOnePaymentClientImpl implements PortOnePaymentClient {
     @Override
     public PortOnePaymentInfo getPayment(String paymentId) {
         try {
-            RestClient restClient = restClientBuilder
-                    .baseUrl(portOneProperties.getApi().getBaseUrl())
-                    .defaultHeader(HttpHeaders.AUTHORIZATION, "PortOne " + portOneProperties.getApi().getSecret())
-                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .build();
-
-            // PortOne 결제 단건 조회 서버가 결제 확정 전에 실제 포트원 상태와 금액을 직접 검증 위해서 사용
-            Map<String, Object> body = restClient.get()
+            Map<String, Object> body = buildRestClient()
+                    .get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/payments/{paymentId}")
-                            .queryParam("storeId", portOneProperties.getStore().getId())
                             .build(paymentId))
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
                     });
-            // 포트원 응답에서 서버 내부 검증에 필요한 값만 확인
+
             return new PortOnePaymentInfo(
                     stringValue(body, "paymentId", paymentId),
                     firstNonBlank(
@@ -52,38 +45,47 @@ public class PortOnePaymentClientImpl implements PortOnePaymentClient {
                     stringValue(body, "status", "UNKNOWN"),
                     firstLong(body, "amount", "totalAmount", "paidAmount")
             );
-        } catch (RestClientResponseException e) {
-            // 포트원 응답 자체가 실패하거나 예외 발생시 결제 검증 실패로 보냄
+        } catch (RestClientResponseException exception) {
             throw new PaymentException(ErrorCode.PAYMENT_VERIFICATION_FAILED);
         }
     }
 
     // paymentId 기준으로 포트원 전액 환불을 요청 사유 없으면 기본 메시지 넣어서 요청
     @Override
-    public PortOneRefundInfo cancelPayment(String paymentId, String reason) {
+    public PortOneCancelInfo cancelPayment(String paymentId, String reason) {
         try {
             Map<String, Object> body = buildRestClient()
                     .post()
                     .uri(uriBuilder -> uriBuilder
                             .path("/payments/{paymentId}/cancel")
-                            .queryParam("storeId", portOneProperties.getStore().getId())
                             .build(paymentId))
                     .body(Map.of(
-                            "reason", reason == null ? "사용자 요청 환불" : reason
+                            "reason", reason == null || reason.isBlank() ? "사용자 요청 환불" : reason
                     ))
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
                     });
 
-            return new PortOneRefundInfo(
+            Map<String, Object> cancellation = nestedMap(body, "cancellation");
+
+            return new PortOneCancelInfo(
                     stringValue(body, "paymentId", paymentId),
                     firstNonBlank(
-                            stringValue(body, "refundId", null),
-                            stringValue(body, "txId", null),
-                            stringValue(body, "transactionId", null)
+                            stringValue(cancellation, "cancellationId", null),
+                            stringValue(cancellation, "cancelId", null),
+                            stringValue(body, "cancellationId", null),
+                            stringValue(body, "cancelId", null)
                     ),
-                    stringValue(body, "status", "UNKNOWN"),
-                    firstLong(body, "cancelledAmount", "amount")
+                    firstNonBlank(
+                            stringValue(cancellation, "status", null),
+                            stringValue(body, "status", "UNKNOWN")
+                    ),
+                    firstLong(
+                            cancellation != null ? cancellation : body,
+                            "cancelledAmount",
+                            "canceledAmount",
+                            "amount"
+                    )
             );
         } catch (RestClientResponseException exception) {
             throw new PaymentException(ErrorCode.REFUND_PROCESS_FAILED);
@@ -105,6 +107,15 @@ public class PortOnePaymentClientImpl implements PortOnePaymentClient {
         return value == null ? defaultValue : String.valueOf(value);
     }
 
+    // 여러 후보 문자열 중에 비어 있지 않은 첫 번째 값을 반환한다
+    private String firstNonBlank(String... candidates) {
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.isBlank()) {
+                return candidate;
+            }
+        }
+        return null;
+    }
 
     // 후보 key 순서대로 확인하면서 포트원 응답에서 첫 번째로 읽을 수 있는 숫자값을 반환
     // 응답 구조가 환경에 따라서 다를 수 있어서 후보기를 유연하게 검사하기 위해서 사용
@@ -141,13 +152,12 @@ public class PortOnePaymentClientImpl implements PortOnePaymentClient {
         return number.longValue();
     }
 
-    // 여러 후보 문자열 중 비어있지 않은 첫 번째 값을 반환
-    // 포트원 응답 필드명이 다를 수도 있으니까 후보 키를 순서대로 검사할 때 사용함
-    private String firstNonBlank(String... candidates) {
-        for (String candidate : candidates) {
-            if (candidate != null && !candidate.isBlank()) {
-                return candidate;
-            }
+    // 응답 body 안의 중첩 객체를 꺼냄
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> nestedMap(Map<String, Object> body, String key) {
+        Object value = body == null ? null : body.get(key);
+        if (value instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
         }
         return null;
     }
