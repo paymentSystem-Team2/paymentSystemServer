@@ -65,7 +65,6 @@ public class OrderService {
 
 // 주문 생성 (포인트 사용 전이기 때문에 0, 결제대기)
         Order order = new Order(
-                null,
                 orderId,
                 orderNumber,
                 user,

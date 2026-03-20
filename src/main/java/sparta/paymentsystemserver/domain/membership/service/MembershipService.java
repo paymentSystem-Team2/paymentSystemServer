@@ -48,7 +48,7 @@ public class MembershipService {
         MembershipGrade policy = policies.stream()
                 .filter(p -> p.getMembershipCode() == user.getMembershipGrade())
                 .findFirst()
-                .orElseThrow(() -> new MembershipException(ErrorCode.MEMBERSHIP_POLICY_NOT_FOUND));
+                .orElseThrow(() -> new MembershipException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND));
 
         // 사용자 정보 + 해당 등급 정책 → 응답 DTO 조합
         return MyMembershipResponse.of(user, policy);
