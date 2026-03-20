@@ -223,7 +223,7 @@ api:
     create-payment:
       url: /api/payments
       method: POST
-      description: 결제 시작 요청 (DB에 PENDING 상태로 등록, PortOne SDK 호출 전에 먼저 호출)
+      description: 결제 시작 요청 (DB에 READY 상태로 등록, PortOne SDK 호출 전에 먼저 호출)
       request:
         fields:
           - name: orderId
@@ -282,11 +282,11 @@ api:
               description: 변경된 주문 상태
 
     cancel-payment:
-      url:
-      method:
+      url: /api/payments/{paymentId}/cancel
+      method: POST
       description: 결제 취소/환불 (PortOne 결제 취소 및 주문 상태 업데이트)
       pathParams:
-        - name:
+        - name: paymentId
           description: 결제 ID
       request:
         fields:

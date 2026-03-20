@@ -40,6 +40,9 @@ public enum ErrorCode {
     PAYMENT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "PAY004", "PortOne 결제 검증에 실패했습니다."),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAY005", "결제 승인 금액이 서버 계산 금액과 일치하지 않습니다."),
     PAYMENT_CONFIRM_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "PAY006", "확정할 수 없는 결제 상태입니다."),
+    REFUND_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "PAY007", "이미 환불 완료된 결제입니다."),
+    REFUND_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "PAY008", "환불할 수 없는 결제 상태입니다."),
+    REFUND_PROCESS_FAILED(HttpStatus.BAD_REQUEST, "PAY009", "PortOne 환불 처리에 실패했습니다."),
 
 
 //    포인트 예외 (PNT###)
