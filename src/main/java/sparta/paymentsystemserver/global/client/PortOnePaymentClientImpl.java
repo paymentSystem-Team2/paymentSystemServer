@@ -31,7 +31,6 @@ public class PortOnePaymentClientImpl implements PortOnePaymentClient {
                     .get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/payments/{paymentId}")
-                            .queryParam("storeId", portOneProperties.getStore().getId())
                             .build(paymentId))
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
