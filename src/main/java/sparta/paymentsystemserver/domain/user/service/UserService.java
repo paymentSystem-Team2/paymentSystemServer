@@ -2,7 +2,6 @@ package sparta.paymentsystemserver.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.InternalException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,22 +47,8 @@ public class UserService {
                 customerUid
         );
 
-        try {
-            userRepository.save(user);
-            return new SignupResponse(
-                    true, "성공적으로 회원 가입하였습니다.");
-        } catch (Exception e){
-            log.error("[AUTH : 회원 가입 로직 중 에러 발생] " +  e.getMessage());
-            throw new InternalException("알수 없는 오류");
-        }
-    }
-
-    // 이메일로 사용자 조회 -> 없으면 UserNotFoundException 발생
-    @Transactional(readOnly = true)
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
-        );
+        userRepository.save(user);
+        return new SignupResponse(true, "성공적으로 회원 가입하였습니다.");
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +86,14 @@ public class UserService {
     @Transactional(readOnly = true)
     public User findById(Long userId) {
         return userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
+        );
+    }
+
+    // 이메일로 사용자 조회 -> 없으면 UserNotFoundException 발생
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
                 () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
         );
     }

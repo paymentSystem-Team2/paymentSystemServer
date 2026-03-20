@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sparta.paymentsystemserver.domain.product.dto.GetProductDetailResponse;
 import sparta.paymentsystemserver.domain.product.dto.ProductResponse;
-import sparta.paymentsystemserver.domain.product.service.ProductService;
+import sparta.paymentsystemserver.domain.product.service.ProductServiceImpl;
 
 import java.util.List;
 
@@ -16,18 +16,18 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    private final ProductService productService;
+    private final ProductServiceImpl productServiceImpl;
 
     @GetMapping
     public List<ProductResponse> getProducts(){
-        return productService.getProducts();
+        return productServiceImpl.getProducts();
     }
 
     // 상품 상세 조회
     @GetMapping("/{productId}")
     public GetProductDetailResponse getProductDetail(
             @PathVariable String productId){
-        return productService.getProductDetail(productId);
+        return productServiceImpl.getProductDetail(productId);
     }
 
 }
