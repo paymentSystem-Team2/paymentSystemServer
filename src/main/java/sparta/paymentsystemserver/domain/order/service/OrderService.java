@@ -110,15 +110,17 @@ public class OrderService {
 
     // 주문 목록 조회
     @Transactional(readOnly = true)
-    public List<GetOrderListResponse> getMyOrders(User user) {
-        return orderRepository.findByUser_IdOrderByOrderedAtDesc(user.getId())
+    public List<GetOrderListResponse> getMyOrders(Long userId) {
+        return orderRepository.findByUser_IdOrderByOrderedAtDesc(userId)
                 .stream()
                 .map(order -> new GetOrderListResponse(
-                        order.getOrderId(),
                         order.getOrderNumber(),
+                        order.getOrderId(),
                         order.getTotalAmount(),
                         order.getUsedPoints(),
-                        order.getPointDiscountAmount(),
+                        order.getTotalAmount() - order.getPointDiscountAmount(),
+                        0L,
+                        "KRW",
                         order.getStatus().name(),
                         order.getOrderedAt()
                 ))
@@ -127,14 +129,14 @@ public class OrderService {
 
     // 주문 상세 조회
     @Transactional(readOnly = true)
-    public GetOrderDetailResponse getMyOrderDetail(User user, String orderId) {
+    public GetOrderDetailResponse getMyOrderDetail(Long userId, String orderId) {
 
         // 외부용 주문 ID로 주문 조회
         Order order = orderRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND));
 
         // 본인 주문인지 검증
-        if (!order.getUser().getId().equals(user.getId())) {
+        if (!order.getUser().getId().equals(userId)) {
             throw new OrderException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 

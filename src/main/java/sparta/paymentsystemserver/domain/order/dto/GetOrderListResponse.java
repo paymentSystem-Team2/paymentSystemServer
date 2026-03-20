@@ -3,12 +3,14 @@ package sparta.paymentsystemserver.domain.order.dto;
 import java.time.LocalDateTime;
 
 public record GetOrderListResponse(
-        String orderId,
         String orderNumber,
+        String orderId,
         Long totalAmount,
         Long usedPoints,
-        Long pointDiscountAmount,
+        Long finalAmount,
+        Long earnedPoints,
+        String currency,
         String status,
-        LocalDateTime orderedAt
+        LocalDateTime createdAt
 ) {
 }

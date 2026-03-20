@@ -11,7 +11,6 @@ import sparta.paymentsystemserver.domain.order.dto.GetOrderListResponse;
 import sparta.paymentsystemserver.domain.order.service.OrderService;
 import sparta.paymentsystemserver.domain.order.dto.CreateOrderRequest;
 import sparta.paymentsystemserver.domain.order.dto.CreateOrderResponse;
-import sparta.paymentsystemserver.domain.user.entity.User;
 
 import java.util.List;
 
@@ -37,18 +36,18 @@ public class OrderController {
     // 주문 목록 조회
     @GetMapping
     public ResponseEntity<List<GetOrderListResponse>> getMyOrders(
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal LoginUserData loginUserData
     ) {
-        return ResponseEntity.ok(orderService.getMyOrders(user));
+        return ResponseEntity.ok(orderService.getMyOrders(loginUserData.userId()));
     }
 
     // 주문 상세 조회
     @GetMapping("/{orderId}")
     public ResponseEntity<GetOrderDetailResponse> getMyOrderDetail(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal LoginUserData loginUserData,
             @PathVariable String orderId
     ) {
-        return ResponseEntity.ok(orderService.getMyOrderDetail(user, orderId));
+        return ResponseEntity.ok(orderService.getMyOrderDetail(loginUserData.userId(), orderId));
     }
 
 }
