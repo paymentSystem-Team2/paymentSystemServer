@@ -74,4 +74,9 @@ public class Order {
     public void refund() {
         this.status = OrderStatus.CANCELLED;
     }
+
+    // 결제 실패나 내부에서 주문을 더 이상 진행하지 않을 때 취소 상태로 전환
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
+    }
 }

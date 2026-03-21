@@ -3,6 +3,8 @@ package sparta.paymentsystemserver.domain.payment.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sparta.paymentsystemserver.domain.order.entity.OrderItem;
+import sparta.paymentsystemserver.domain.order.repository.OrderItemRepository;
 import sparta.paymentsystemserver.domain.payment.dto.PaymentResultResponse;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentProvider;
@@ -12,6 +14,7 @@ import sparta.paymentsystemserver.domain.payment.entity.RefundStatus;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.payment.repository.RefundRepository;
+import sparta.paymentsystemserver.domain.point.service.PointService;
 import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
 import sparta.paymentsystemserver.global.client.dto.PortOneCancelInfo;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
@@ -26,9 +29,9 @@ public class RefundService {
     private final RefundRepository refundRepository;
     private final PortOnePaymentClient portOnePaymentClient;
     private final PublicIdGenerator publicIdGenerator;
+    private final RefundTransactionProcessor refundTransactionProcessor;
 
-    // 사용자 결제 환불 처리
-    // 외부 결제에서는 포트원에 취소를 요청하고 내부 결제(포인트 결제 등)에서는 즉시 환불 이력 생성
+    // 사용자 결제 환불 처리 외부 결제에서는 포트원에 취소를 요청하고 내부 결제(포인트 결제 등)에서는 즉시 환불 이력 생성
     @Transactional
     public PaymentResultResponse cancelPayment(String paymentId, Long userId, String reason) {
         Payment payment = paymentRepository.findByPaymentId(paymentId)
@@ -36,12 +39,14 @@ public class RefundService {
 
         validateRefundRequest(payment, userId);
 
+        // 이미 환불 완료된 결제는 성공 응답만 돌려줌
         if (payment.getStatus() == PaymentStatus.REFUNDED) {
             return toResult(payment);
         }
 
         RefundExecution refundExecution = executeRefund(payment, reason);
 
+        // 외부 환불이 성공한 뒤에는 내부 환불 이력을 남김
         Refund refund = Refund.create(
                 publicIdGenerator.generate("REF"),
                 payment,
@@ -52,6 +57,11 @@ public class RefundService {
         );
 
         refundRepository.save(refund);
+
+        // 환불 완료 후에 내부에 처리 수행
+        refundTransactionProcessor.processRefund(payment);
+
+        // 결제랑 주문 상태를 최종 환불 상태로 전환
         payment.markRefunded();
         payment.getOrder().refund();
 
@@ -80,7 +90,8 @@ public class RefundService {
     // 포트원 결제는 외부 취소 내부 결제는 내부 금액 기준으로 처리
     private RefundExecution executeRefund(Payment payment, String reason) {
         if (payment.getProvider() != PaymentProvider.PORTONE) {
-            return new RefundExecution("INTERNAL", payment.getExternalAmount());
+            // 실제 주문 기준 환불 금액을 이력에 남김
+            return new RefundExecution("INTERNAL", payment.getTotalAmount());
         }
 
         PortOneCancelInfo cancelInfo = portOnePaymentClient.cancelPayment(payment.getPaymentId(), reason);
@@ -92,7 +103,7 @@ public class RefundService {
         return new RefundExecution(cancelInfo.cancellationId(), cancelInfo.cancelledAmount());
     }
 
-    // 환불 완료 후에 프론트에 반환할 공통 응답 만듦
+    // 환불 완료 후에 프론트에 반환할 공통 응답
     private PaymentResultResponse toResult(Payment payment) {
         return new PaymentResultResponse(
                 true,

@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -23,6 +24,7 @@ public class DataInitializer implements ApplicationRunner {
         try {
             insertProducts();
             user();
+            insertMembershipPolicies();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -88,6 +90,29 @@ public class DataInitializer implements ApplicationRunner {
                 "INSERT INTO users " +
                         "(name, email, password, customer_uid, point_balance, membership_grade, total_paid_amount, phone) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                batchArgs
+        );
+    }
+
+    private void insertMembershipPolicies() {
+        Long policyCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM membership_policies",
+                Long.class
+        );
+
+        if (policyCount != null && policyCount > 0) {
+            return;
+        }
+
+        List<Object[]> batchArgs = List.of(
+                new Object[]{"NORMAL", 0L, new BigDecimal("0.01")},
+                new Object[]{"VIP", 100000L, new BigDecimal("0.03")},
+                new Object[]{"VVIP", 300000L, new BigDecimal("0.05")}
+        );
+
+        jdbcTemplate.batchUpdate(
+                "INSERT INTO membership_policies (membership_code, min_total_paid_amount, earn_rate) " +
+                        "VALUES (?, ?, ?)",
                 batchArgs
         );
     }

@@ -141,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 해당 주문에 포함된 주문 상품 목록 조회
-        List<GetOrderItemResponse> items = orderItemRepository.findByOrder(order)
+        List<GetOrderItemResponse> items = orderItemRepository.findWithProductByOrder(order)
                 .stream()
                 .map(orderItem -> new GetOrderItemResponse(
                         orderItem.getProduct().getProductId(),

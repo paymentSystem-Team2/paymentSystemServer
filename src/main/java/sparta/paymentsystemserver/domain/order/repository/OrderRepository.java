@@ -20,4 +20,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserIdOrderByOrderedAtDesc(Long userId);
 
     List<Order> findByStatusAndCompletedAtBefore(OrderStatus orderStatus, LocalDateTime threshold);
+
+    List<Order> findByStatusAndOrderedAtBefore(OrderStatus orderStatus, LocalDateTime threshold);
 }
