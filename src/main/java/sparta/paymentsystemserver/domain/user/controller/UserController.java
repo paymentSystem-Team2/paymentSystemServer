@@ -8,7 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
 import sparta.paymentsystemserver.domain.membership.dto.MyMembershipResponse;
-import sparta.paymentsystemserver.domain.point.dto.response.PointHistoryResponse;
+import sparta.paymentsystemserver.domain.point.dto.PointHistoryResponse;
 import sparta.paymentsystemserver.domain.point.service.PointService;
 import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 import sparta.paymentsystemserver.domain.user.dto.UserUpdateRequest;

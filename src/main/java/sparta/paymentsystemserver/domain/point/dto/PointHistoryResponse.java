@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.domain.point.dto.response;
+package sparta.paymentsystemserver.domain.point.dto;
 
 import sparta.paymentsystemserver.domain.point.entity.PointTransaction;
 import sparta.paymentsystemserver.domain.point.entity.PointTransactionType;
