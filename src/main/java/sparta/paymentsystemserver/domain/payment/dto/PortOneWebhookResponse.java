@@ -1,7 +1,7 @@
 package sparta.paymentsystemserver.domain.payment.dto;
 
-// 웹훅 처리 결과 응답 dto
-public record WebhookResponse(
+// 포트원 웹훅 응답 dto
+public record PortOneWebhookResponse(
         boolean success,
         String message
 ) {

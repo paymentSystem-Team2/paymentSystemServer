@@ -1,6 +1,7 @@
 package sparta.paymentsystemserver.domain.payment.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.order.entity.OrderItem;
@@ -21,6 +22,7 @@ import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
 // 결제 환불 처리 서비스 환불 가능 여부 검증하고 바깥의 취소 요청과 내부 상태 변경 함께 처리함
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefundService {
@@ -66,6 +68,46 @@ public class RefundService {
         payment.getOrder().refund();
 
         return toResult(payment);
+    }
+
+    // 외부에서 이미 취소된 결제를 포트원 웹훅으로 동기화 우리 서버는 내부 환불 상태만 맞춤
+    @Transactional
+    public void syncRefundFromWebhook(String paymentId, String providerRefundId, String reason) {
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (payment.getStatus() == PaymentStatus.REFUNDED) {
+            log.info("[RefundSync] already refunded. paymentId={}", paymentId);
+            return;
+        }
+
+        if (refundRepository.existsByPaymentId(payment.getId())) {
+            log.info("[RefundSync] refund history already exists. paymentId={}", paymentId);
+            payment.markRefunded();
+            payment.getOrder().refund();
+            return;
+        }
+
+        if (payment.getStatus() != PaymentStatus.PAID) {
+            log.info("[RefundSync] payment is not PAID. skip sync. paymentId={}, status={}", paymentId, payment.getStatus());
+            return;
+        }
+
+        Refund refund = Refund.create(
+                publicIdGenerator.generate("REF"),
+                payment,
+                payment.getTotalAmount(),
+                reason,
+                RefundStatus.COMPLETED,
+                providerRefundId
+        );
+
+        refundRepository.save(refund);
+        refundTransactionProcessor.processRefund(payment);
+        payment.markRefunded();
+        payment.getOrder().refund();
+
+        log.info("[RefundSync] synced refund from webhook. paymentId={}, providerRefundId={}", paymentId, providerRefundId);
     }
 
     // 환불 요청 유효한지 검증. 본인 결제 여부랑 결제 상태랑 중복 환불 여부를 확인함
