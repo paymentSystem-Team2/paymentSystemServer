@@ -1,13 +1,19 @@
 package sparta.paymentsystemserver.domain.payment.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookRequest;
-import sparta.paymentsystemserver.domain.payment.dto.WebhookResponse;
+import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookResponse;
 import sparta.paymentsystemserver.domain.payment.service.WebhookService;
 
-// 포트원 웹훅 수신 API입니다
-// 외부 포트원 서버가 직접 호출하기 때문에 jwt 인증 없이 접근 가능해야 됨
+import java.util.Collections;
+
+// 포트원 웹훅 진입점 컨트롤러는
+// 1. 들어온 헤더와 핵심 payload 값을 로그로 남김
+// 2. 실제 비즈니스 처리는 WebhookService에 위임
+@Slf4j
 @RestController
 @RequestMapping("/api/webhooks/payments")
 @RequiredArgsConstructor
@@ -16,10 +22,28 @@ public class WebhookController {
     private final WebhookService webhookService;
 
     @PostMapping
-    public WebhookResponse receiveWebhook(
-            @RequestHeader("webhook-id") String webhookId,
-            @RequestBody PortOneWebhookRequest request
+    public PortOneWebhookResponse receiveWebhook(
+            @RequestHeader(value = "Webhook-Id", required = false) String webhookId,
+            @RequestBody PortOneWebhookRequest request,
+            HttpServletRequest httpServletRequest
     ) {
-        return webhookService.processWebhook(webhookId, request);
+        Collections.list(httpServletRequest.getHeaderNames())
+                .forEach(name -> log.info("[Webhook][Header] {}={}", name, httpServletRequest.getHeader(name)));
+
+        // 포트원은 Webhook-Id 헤더를 이벤트의 고유 식별자로 사용
+        String resolvedWebhookId = webhookId != null
+                ? webhookId
+                : httpServletRequest.getHeader("webhook-id");
+
+        log.info("[Webhook][Mapped] webhookId={}", resolvedWebhookId);
+        log.info(
+                "[Webhook][Body] type={}, paymentId={}, transactionId={}, storeId={}",
+                request.providerStatus(),
+                request.paymentId(),
+                request.data() != null ? request.data().transactionId() : null,
+                request.data() != null ? request.data().storeId() : null
+        );
+
+        return webhookService.processWebhook(resolvedWebhookId, request);
     }
 }
