@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.domain.auth.contoller;
+package sparta.paymentsystemserver.domain.auth.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
