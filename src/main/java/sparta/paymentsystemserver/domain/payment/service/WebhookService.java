@@ -57,7 +57,7 @@ public class WebhookService {
         Payment payment = paymentRepository.findByPaymentId(paymentId).orElse(null);
 
         if (payment == null) {
-            event.markFailed("결제 정보를 찾을 수 없습니다.");
+            markEventFailed(event, "결제 정보를 찾을 수 없습니다.");
             log.warn("[Webhook] 결제 정보를 찾지 못했습니다 - paymentId={}", paymentId);
             return failure("결제 정보를 찾을 수 없습니다.");
         }
