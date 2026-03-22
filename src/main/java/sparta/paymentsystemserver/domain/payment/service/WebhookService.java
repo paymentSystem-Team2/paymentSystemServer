@@ -30,14 +30,13 @@ public class WebhookService {
     private final PaymentService paymentService;
     private final RefundService refundService;
 
-    @Transactional
     public PortOneWebhookResponse processWebhook(String webhookId, PortOneWebhookRequest request) {
         String paymentId = request.paymentId();
         String providerStatus = request.providerStatus();
         String resolvedWebhookId = resolveWebhookId(webhookId, paymentId);
 
         log.info(
-                "[Webhook] process start. webhookId={}, paymentId={}, providerStatus={}",
+                "[Webhook] 처리 시작 - webhookId={}, paymentId={}, providerStatus={}",
                 resolvedWebhookId,
                 paymentId,
                 providerStatus
@@ -50,7 +49,7 @@ public class WebhookService {
 
         // webhook-id를 멱등키로 사용. 같은 이벤트가 재전송되어도 한 번만 처리하고 성공 응답을 돌려줌
         if (paymentWebhookEventRepository.existsByWebhookId(resolvedWebhookId)) {
-            log.info("[Webhook] duplicate webhook ignored. webhookId={}", resolvedWebhookId);
+            log.info("[Webhook] 중복 웹훅이라 처리 생략 - webhookId={}", resolvedWebhookId);
             return success("이미 처리된 웹훅입니다.");
         }
 
@@ -59,7 +58,7 @@ public class WebhookService {
 
         if (payment == null) {
             event.markFailed("결제 정보를 찾을 수 없습니다.");
-            log.warn("[Webhook] payment not found. paymentId={}", paymentId);
+            log.warn("[Webhook] 결제 정보를 찾지 못했습니다 - paymentId={}", paymentId);
             return failure("결제 정보를 찾을 수 없습니다.");
         }
 
@@ -82,7 +81,7 @@ public class WebhookService {
     // 필수 값인 paymentId가 빠진 웹훅은 더 진행하지 않음
     private PortOneWebhookResponse validateRequest(String paymentId, String resolvedWebhookId) {
         if (paymentId == null || paymentId.isBlank()) {
-            log.error("[Webhook] paymentId is missing. webhookId={}", resolvedWebhookId);
+            log.error("[Webhook] paymentId가 비어 있습니다 - webhookId={}", resolvedWebhookId);
             return failure("paymentId가 없어 웹훅을 처리할 수 없습니다.");
         }
         return null;
@@ -104,9 +103,9 @@ public class WebhookService {
                 rawPayload
         );
 
-        log.info("[Webhook] saving event. webhookId={}, rawPayload={}", webhookId, rawPayload);
+        log.info("[Webhook] 이벤트 저장 시작 - webhookId={}, rawPayload={}", webhookId, rawPayload);
         paymentWebhookEventRepository.saveAndFlush(event);
-        log.info("[Webhook] event saved. webhookId={}, eventId={}", webhookId, event.getId());
+        log.info("[Webhook] 이벤트 저장 완료 - webhookId={}, eventId={}", webhookId, event.getId());
 
         return event;
     }
@@ -131,9 +130,9 @@ public class WebhookService {
                 "PortOne 웹훅 취소/환불 동기화"
         );
 
-        event.markProcessed();
+        markEventProcessed(event);
         log.info(
-                "[Webhook] cancellation/refund event synced. providerStatus={}, paymentId={}",
+                "[Webhook] 취소/환불 이벤트 동기화 완료 - providerStatus={}, paymentId={}",
                 request.providerStatus(),
                 payment.getPaymentId()
         );
@@ -149,16 +148,16 @@ public class WebhookService {
     ) {
         // 사용자가 이미 수동 확정을 눌렀다면 웹훅은 멱등하게 성공 처리
         if (payment.getStatus() == PaymentStatus.PAID) {
-            event.markProcessed();
-            log.info("[Webhook] payment already paid. webhookId={}, paymentId={}", resolvedWebhookId, paymentId);
+            markEventProcessed(event);
+            log.info("[Webhook] 이미 결제 완료 상태입니다 - webhookId={}, paymentId={}", resolvedWebhookId, paymentId);
             return success("이미 확정된 결제입니다.");
         }
 
         // READY가 아닌 상태라면 다른 흐름에서 이미 최종 처리된 상태
         if (payment.getStatus() != PaymentStatus.READY) {
-            event.markProcessed();
+            markEventProcessed(event);
             log.info(
-                    "[Webhook] payment already finalized with status {}. webhookId={}, paymentId={}",
+                    "[Webhook] 이미 최종 처리된 결제 상태입니다 - status={}, webhookId={}, paymentId={}",
                     payment.getStatus(),
                     resolvedWebhookId,
                     paymentId
@@ -167,17 +166,17 @@ public class WebhookService {
         }
 
         try {
-            log.info("[Webhook] confirm start. paymentId={}", paymentId);
+            log.info("[Webhook] 결제 자동 확정 시작 - paymentId={}", paymentId);
             paymentService.confirmPaymentByWebhook(paymentId);
-            log.info("[Webhook] confirm success. paymentId={}", paymentId);
-            event.markProcessed();
-            log.info("[Webhook] event marked processed. webhookId={}, eventId={}", resolvedWebhookId, event.getId());
+            log.info("[Webhook] 결제 자동 확정 성공 - paymentId={}", paymentId);
+            markEventProcessed(event);
+            log.info("[Webhook] 이벤트 처리 완료 - webhookId={}, eventId={}", resolvedWebhookId, event.getId());
             return success("웹훅 처리가 완료되었습니다.");
         } catch (Exception e) {
-            log.error("[Webhook] process failed. webhookId={}, paymentId={}", resolvedWebhookId, paymentId, e);
-            event.markFailed(e.getMessage());
+            log.error("[Webhook] 웹훅 처리 실패 - webhookId={}, paymentId={}", resolvedWebhookId, paymentId, e);
+            markEventFailed(event, e.getMessage());
             log.info(
-                    "[Webhook] event marked failed. webhookId={}, eventId={}, reason={}",
+                    "[Webhook] 실패 이력 저장 완료 - webhookId={}, eventId={}, reason={}",
                     resolvedWebhookId,
                     event.getId(),
                     e.getMessage()
@@ -186,16 +185,16 @@ public class WebhookService {
         }
     }
 
-    // Ready 같은 중간 이벤트는 이력만 남기고 실제 결제 상태는 바꾸지 않음
+    // 확정 대상이 아닌 이벤트는 이력만 남기고 종료
     private PortOneWebhookResponse handleNonConfirmingEvent(
             Payment payment,
             String providerStatus,
             String paymentId,
             PaymentWebhookEvent event
     ) {
-        event.markProcessed();
+        markEventProcessed(event);
         log.info(
-                "[Webhook] non-paid event recorded only. providerStatus={}, paymentStatus={}, paymentId={}",
+                "[Webhook] 확정 대상이 아닌 이벤트로 기록만 남겼습니다 - providerStatus={}, paymentStatus={}, paymentId={}",
                 providerStatus,
                 payment.getStatus(),
                 paymentId
@@ -222,5 +221,17 @@ public class WebhookService {
 
     private PortOneWebhookResponse failure(String message) {
         return new PortOneWebhookResponse(false, message);
+    }
+
+    // 상태 변경은 바로 저장
+    private void markEventProcessed(PaymentWebhookEvent event) {
+        event.markProcessed();
+        paymentWebhookEventRepository.saveAndFlush(event);
+    }
+
+    // 결제 확정 중 예외가 나더라도 실패 이력은 남아야 하니까 실패 상태도 바로 저장
+    private void markEventFailed(PaymentWebhookEvent event, String failureReason) {
+        event.markFailed(failureReason);
+        paymentWebhookEventRepository.saveAndFlush(event);
     }
 }

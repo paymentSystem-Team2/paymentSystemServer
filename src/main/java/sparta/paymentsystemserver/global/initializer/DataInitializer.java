@@ -25,6 +25,7 @@ public class DataInitializer implements ApplicationRunner {
             insertProducts();
             user();
             insertMembershipPolicies();
+            insertPlans();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -113,6 +114,29 @@ public class DataInitializer implements ApplicationRunner {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO membership_policies (membership_code, min_total_paid_amount, earn_rate) " +
                         "VALUES (?, ?, ?)",
+                batchArgs
+        );
+    }
+
+    private void insertPlans() {
+        Long planCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM plans",
+                Long.class
+        );
+
+        if (planCount != null && planCount > 0) {
+            return;
+        }
+
+        List<Object[]> batchArgs = List.of(
+                new Object[]{"PLAN-BASIC", "Basic", 4900L, "MONTHLY", "월간 입문 구독 플랜", true},
+                new Object[]{"PLAN-PRO", "Pro", 9900L, "MONTHLY", "월간 쩌는 구독 플랜", true},
+                new Object[]{"PLAN-MAX", "Max", 19900L, "MONTHLY", "월간 프리미엄 구독 플랜", true}
+        );
+
+        jdbcTemplate.batchUpdate(
+                "INSERT INTO plans (plan_id, name, amount, billing_cycle, description, active) " +
+                        "VALUES (?, ?, ?, ?, ?, ?)",
                 batchArgs
         );
     }

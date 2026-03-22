@@ -28,16 +28,16 @@ public class WebhookController {
             HttpServletRequest httpServletRequest
     ) {
         Collections.list(httpServletRequest.getHeaderNames())
-                .forEach(name -> log.info("[Webhook][Header] {}={}", name, httpServletRequest.getHeader(name)));
+                .forEach(name -> log.info("[Webhook][헤더] {}={}", name, httpServletRequest.getHeader(name)));
 
         // 포트원은 Webhook-Id 헤더를 이벤트의 고유 식별자로 사용
         String resolvedWebhookId = webhookId != null
                 ? webhookId
                 : httpServletRequest.getHeader("webhook-id");
 
-        log.info("[Webhook][Mapped] webhookId={}", resolvedWebhookId);
+        log.info("[Webhook][매핑] webhookId={}", resolvedWebhookId);
         log.info(
-                "[Webhook][Body] type={}, paymentId={}, transactionId={}, storeId={}",
+                "[Webhook][본문] type={}, paymentId={}, transactionId={}, storeId={}",
                 request.providerStatus(),
                 request.paymentId(),
                 request.data() != null ? request.data().transactionId() : null,
