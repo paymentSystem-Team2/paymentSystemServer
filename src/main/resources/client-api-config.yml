@@ -254,6 +254,44 @@ api:
               required: false
               description: 결제 상태 (READY)
 
+    process-delivery:
+      url: /api/orders/{orderId}
+      method: PATCH
+      description: 배송 현황 업데이트
+      pathParams:
+        - name: orderId
+          description: 주문 ID
+      response:
+        body:
+          fields:
+            - name: success
+              type: boolean
+              required: true
+              description: 확정 성공 여부
+            - name: orderId
+              type: string
+              required: false
+              description: 주문 ID
+            - name: status
+              type: string
+              required: false
+              description: 변경된 주문 상태
+
+    purchase-confirm:
+      url: /api/orders/{orderId}/confirmed
+      method: PATCH
+      description: 구매 확정
+      pathParams:
+        - name: orderId
+          description: 주문 ID
+      response:
+        body:
+          fields:
+            - name: success
+              type: boolean
+              required: true
+              description: 확정 성공 여부
+
     confirm-payment:
       url: /api/payments/{paymentId}/confirm
       method: POST

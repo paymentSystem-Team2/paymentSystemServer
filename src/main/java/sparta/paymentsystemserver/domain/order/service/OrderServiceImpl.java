@@ -132,8 +132,7 @@ public class OrderServiceImpl implements OrderService {
     public GetOrderDetailResponse getMyOrderDetail(Long userId, String orderId) {
 
         // 외부용 주문 ID로 주문 조회
-        Order order = orderRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new OrderException(ErrorCode.ORDER_NOT_FOUND));
+        Order order = getOrder(orderId);
 
         // 본인 주문인지 검증
         if (!order.getUser().getId().equals(userId)) {
@@ -161,6 +160,25 @@ public class OrderServiceImpl implements OrderService {
                 order.getStatus().name(),
                 order.getOrderedAt(),
                 items
+        );
+    }
+
+    public updateOrderStatusResponse processDelivery(String orderId) {
+        Order order = getOrder(orderId);
+
+        order.processDelivery();
+
+        return new updateOrderStatusResponse(true,orderId,order.getStatus().name());
+    }
+
+    public void confirmOrder(String orderId) {
+        Order order = getOrder(orderId);
+        order.PurchaseConfirmed();
+    }
+
+    private Order getOrder(String orderId) {
+        return orderRepository.findByOrderId(orderId).orElseThrow(
+                () -> new OrderException(ErrorCode.ORDER_NOT_FOUND)
         );
     }
 }
