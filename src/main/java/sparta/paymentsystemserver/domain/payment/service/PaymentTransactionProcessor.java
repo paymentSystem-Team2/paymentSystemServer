@@ -40,7 +40,7 @@ public class PaymentTransactionProcessor {
         pointService.spendPoints(payment.getUser().getId(), order, payment.getPointsToUse());
 
         // 실제 외부 결제 금액 기준으로 적립 포인트를 계산하고 누적 결제 금액과 멤버십 등급도 함께 갱신
-        pointService.earnPoints(payment.getUser().getId(), order, payment.getExternalAmount());
+//        pointService.earnPoints(payment.getUser().getId(), order, payment.getExternalAmount());
 
         // 모든 내부 반영이 끝난 뒤 주문을 결제 완료 상태로 전환
         order.completePurchase();
