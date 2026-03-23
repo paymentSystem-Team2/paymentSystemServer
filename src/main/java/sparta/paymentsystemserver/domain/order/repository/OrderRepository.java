@@ -19,7 +19,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // 로그인한 사용자의 주문 목록 조회 (최신순)
     List<Order> findByUserIdOrderByOrderedAtDesc(Long userId);
 
-    List<Order> findByStatusAndCompletedAtBefore(OrderStatus orderStatus, LocalDateTime threshold);
+    List<Order> findByStatusAndPurchasedAtBefore(OrderStatus status, LocalDateTime threshold);
 
     List<Order> findByStatusAndOrderedAtBefore(OrderStatus orderStatus, LocalDateTime threshold);
 }

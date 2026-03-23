@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
-import sparta.paymentsystemserver.domain.point.dto.response.PointHistoryResponse;
+import sparta.paymentsystemserver.domain.point.dto.PointHistoryResponse;
 import sparta.paymentsystemserver.domain.point.service.PointService;
 
 import java.util.List;

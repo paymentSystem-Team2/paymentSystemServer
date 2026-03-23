@@ -54,7 +54,7 @@ public class Order {
     private LocalDateTime completedAt;
 
     @Column
-    private LocalDateTime PurchasedAt;
+    private LocalDateTime purchasedAt;
 
     public Order(String orderId, String orderNumber, User user, Long totalAmount, OrderStatus status, LocalDateTime orderedAt) {
         this.orderId = orderId;
@@ -74,10 +74,10 @@ public class Order {
     public void completePurchase() {
         checkIsConfirmed();
         this.status = OrderStatus.PAID;
-        this.PurchasedAt = LocalDateTime.now();
+        this.purchasedAt = LocalDateTime.now();
     }
 
-    public void PurchaseConfirmed() {
+    public void purchaseConfirmed() {
         checkIsConfirmed();
         this.status = OrderStatus.PURCHASE_CONFIRMED;
         this.completedAt = LocalDateTime.now();
