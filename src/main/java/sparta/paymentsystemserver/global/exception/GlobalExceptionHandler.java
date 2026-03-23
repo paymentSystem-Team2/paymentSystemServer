@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import sparta.paymentsystemserver.domain.auth.exception.AuthException;
 import sparta.paymentsystemserver.domain.membership.exception.MembershipException;
+import sparta.paymentsystemserver.domain.order.exception.OrderException;
 import sparta.paymentsystemserver.domain.point.exception.PointException;
 import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
@@ -72,6 +73,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(errorCode));
     }
 //    주문 예외 로직 부분
+    @ExceptionHandler(OrderException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleOrderException(OrderException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode));
+    }
 
 
 //    결제 예외 로직 부분

@@ -27,7 +27,7 @@
 
     <!-- 애플리케이션 로그 레벨 설정 -->
     <!-- 우리 프로젝트 패키지 하위의 로그는 DEBUG 레벨까지 촘촘하게 보여주겠다는 뜻! -->
-    <logger name="com.example.instagramclone" level="DEBUG"/>
+    <logger name="sparta.paymentsystemserver" level="DEBUG"/>
 
     <!-- 전체 애플리케이션의 기본 로그 레벨 -->
     <!-- 외부 라이브러리(스프링, 하이버네이트 등) 로그는 INFO 레벨부터만 보여줍니다. -->

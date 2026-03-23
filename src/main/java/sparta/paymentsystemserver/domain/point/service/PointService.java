@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.membership.entity.MembershipGradePolicy;
-import sparta.paymentsystemserver.domain.membership.repository.MembershipGradeRepository;
 import sparta.paymentsystemserver.domain.order.entity.Order;
 import sparta.paymentsystemserver.domain.point.dto.PointHistoryResponse;
 import sparta.paymentsystemserver.domain.point.entity.PointTransaction;
