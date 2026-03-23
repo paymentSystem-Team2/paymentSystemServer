@@ -2,6 +2,7 @@ package sparta.paymentsystemserver.domain.auth.service;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sparta.paymentsystemserver.domain.auth.dto.LoginRequest;
@@ -17,6 +18,7 @@ import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.jwt.JwtUtil;
 import sparta.paymentsystemserver.global.redis.RedisRefreshTokenUtil;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -33,7 +35,7 @@ public class AuthService {
 
         //토큰 생성
         String token = jwtUtil.createAccessToken(user.getId(), user.getEmail());
-        String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
+        String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
 
         //redis 저장
         redisUtil.save(user.getId(), refreshToken, jwtUtil.getRefreshTokenExpiration());
@@ -46,28 +48,25 @@ public class AuthService {
 //    [Access Token 만료] → 클라이언트가 /api/auth/refresh 호출
 //    [Refresh Token 검증] → Redis에 저장된 값과 비교 → 새 Access Token 발급
 //    [Refresh Token 만료/없음] → 재로그인 요구
-    public TokenResponse reissue(String refreshToken) {
-        // 토큰 만료 여부 확인
+    public TokenResponse reissue(String refreshToken , String expiredAccessToken) {
+
         if (jwtUtil.isExpired(refreshToken)) {
             throw new InvalidTokenException(ErrorCode.EXPIRED_REFRESH_TOKEN);
         }
+        String accessToken = expiredAccessToken.replace("Bearer ", "");
+        Long userId = jwtUtil.getId(accessToken);
+        String email = jwtUtil.getEmail(accessToken);
 
-        Long userId = jwtUtil.getId(refreshToken);
-        String email = jwtUtil.getEmail(refreshToken);
-
-        //  Redis에 저장된 토큰과 비교 (탈취 방지)
         String savedToken = redisUtil.get(userId);
-        if (savedToken == null || !savedToken.equals(refreshToken)) {
+        if(!refreshToken.equals(savedToken)){
             throw new InvalidTokenException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
-
         // 새 Access Token 발급
         String newAccessToken = jwtUtil.createAccessToken(userId, email);
 
         // Refresh Token Rotation - 보안 강화
-        String newRefreshToken = jwtUtil.createRefreshToken(userId, email);
+        String newRefreshToken = jwtUtil.createRefreshToken(email);
         redisUtil.save(userId, newRefreshToken, jwtUtil.getRefreshTokenExpiration());
-
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
 
