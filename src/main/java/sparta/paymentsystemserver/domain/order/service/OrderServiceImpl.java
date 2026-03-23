@@ -10,6 +10,7 @@ import sparta.paymentsystemserver.domain.order.entity.OrderStatus;
 import sparta.paymentsystemserver.domain.order.exception.OrderException;
 import sparta.paymentsystemserver.domain.order.repository.OrderItemRepository;
 import sparta.paymentsystemserver.domain.order.repository.OrderRepository;
+import sparta.paymentsystemserver.domain.point.service.PointService;
 import sparta.paymentsystemserver.domain.product.entity.Product;
 import sparta.paymentsystemserver.domain.product.exception.ProductStockException;
 import sparta.paymentsystemserver.domain.product.service.ProductService;
@@ -36,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductService productService;
     private final PublicIdGenerator publicIdGenerator;
     private final UserService userService;
+    private final PointService pointService;
 
     public CreateOrderResponse createOrder(Long userId, CreateOrderRequest request) {
         User user = userService.findById(userId);
@@ -173,6 +175,9 @@ public class OrderServiceImpl implements OrderService {
 
     public void confirmOrder(String orderId) {
         Order order = getOrder(orderId);
+        if(order.getUsedPoints() == 0L){
+            pointService.earnPoints(order.getUser().getId(), order, order.getTotalAmount());
+        }
         order.purchaseConfirmed();
     }
 
