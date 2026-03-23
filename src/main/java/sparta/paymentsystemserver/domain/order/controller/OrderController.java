@@ -6,11 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
-import sparta.paymentsystemserver.domain.order.dto.GetOrderDetailResponse;
-import sparta.paymentsystemserver.domain.order.dto.GetOrderListResponse;
+import sparta.paymentsystemserver.domain.order.dto.*;
 import sparta.paymentsystemserver.domain.order.service.OrderService;
-import sparta.paymentsystemserver.domain.order.dto.CreateOrderRequest;
-import sparta.paymentsystemserver.domain.order.dto.CreateOrderResponse;
 
 import java.util.List;
 
@@ -48,6 +45,22 @@ public class OrderController {
             @PathVariable String orderId
     ) {
         return ResponseEntity.ok(orderService.getMyOrderDetail(loginUserData.userId(), orderId));
+    }
+
+    @PatchMapping("/{orderId}")
+    public ResponseEntity<updateOrderStatusResponse> setOrderStatus(
+            @PathVariable String orderId
+    ){
+        updateOrderStatusResponse response = orderService.processDelivery(orderId);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PatchMapping("/{orderId}/confirmed")
+    public ResponseEntity<Void> confirmOrder(
+            @PathVariable String orderId
+    ){
+        orderService.confirmOrder(orderId);
+        return ResponseEntity.ok().build();
     }
 
 }

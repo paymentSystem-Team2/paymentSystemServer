@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sparta.paymentsystemserver.domain.order.entity.OrderItem;
-import sparta.paymentsystemserver.domain.order.repository.OrderItemRepository;
 import sparta.paymentsystemserver.domain.payment.dto.PaymentResultResponse;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentProvider;
@@ -15,7 +13,6 @@ import sparta.paymentsystemserver.domain.payment.entity.RefundStatus;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.payment.repository.RefundRepository;
-import sparta.paymentsystemserver.domain.point.service.PointService;
 import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
 import sparta.paymentsystemserver.global.client.dto.PortOneCancelInfo;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
@@ -40,6 +37,10 @@ public class RefundService {
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
         validateRefundRequest(payment, userId);
+
+        if(payment.getOrder().isConfirmed()) {
+            return toFailResult(payment);
+        }
 
         // 이미 환불 완료된 결제는 성공 응답만 돌려줌
         if (payment.getStatus() == PaymentStatus.REFUNDED) {
@@ -149,6 +150,15 @@ public class RefundService {
     private PaymentResultResponse toResult(Payment payment) {
         return new PaymentResultResponse(
                 true,
+                payment.getPaymentId(),
+                payment.getOrder().getOrderId(),
+                payment.getStatus().name()
+        );
+    }
+
+    private PaymentResultResponse toFailResult(Payment payment) {
+        return new PaymentResultResponse(
+                false,
                 payment.getPaymentId(),
                 payment.getOrder().getOrderId(),
                 payment.getStatus().name()
