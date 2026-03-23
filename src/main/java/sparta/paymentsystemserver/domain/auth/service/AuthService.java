@@ -16,6 +16,7 @@ import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.service.UserService;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.jwt.JwtUtil;
+import sparta.paymentsystemserver.global.redis.RedisBlackListUtil;
 import sparta.paymentsystemserver.global.redis.RedisRefreshTokenUtil;
 
 @Slf4j
@@ -26,7 +27,8 @@ public class AuthService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final RedisRefreshTokenUtil redisUtil;
+    private final RedisRefreshTokenUtil redisRefreshTokenUtil;
+    private final RedisBlackListUtil redisBlackListUtil;
 
     public LoginUser login(@Valid LoginRequest requestDto) {
         User user = userService.findByEmail(requestDto.getEmail());
@@ -38,7 +40,7 @@ public class AuthService {
         String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
 
         //redis 저장
-        redisUtil.save(user.getId(), refreshToken, jwtUtil.getRefreshTokenExpiration());
+        redisRefreshTokenUtil.save(user.getId(), refreshToken, jwtUtil.getRefreshTokenExpiration());
 
         return new LoginUser(token,refreshToken,true, user.getEmail());
     }
@@ -57,7 +59,7 @@ public class AuthService {
         Long userId = jwtUtil.getId(accessToken);
         String email = jwtUtil.getEmail(accessToken);
 
-        String savedToken = redisUtil.get(userId);
+        String savedToken = redisRefreshTokenUtil.get(userId);
         if(!refreshToken.equals(savedToken)){
             throw new InvalidTokenException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
@@ -66,12 +68,15 @@ public class AuthService {
 
         // Refresh Token Rotation - 보안 강화
         String newRefreshToken = jwtUtil.createRefreshToken(email);
-        redisUtil.save(userId, newRefreshToken, jwtUtil.getRefreshTokenExpiration());
+        redisRefreshTokenUtil.save(userId, newRefreshToken, jwtUtil.getRefreshTokenExpiration());
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
 
-    public void logout(Long userId) {
-        redisUtil.delete(userId);
+    public void logout(Long userId, String accessToken) {
+
+        redisRefreshTokenUtil.delete(userId);
+        redisBlackListUtil.save(accessToken);
+
     }
 
     public void checkPassword(String rawPassword, String password) {

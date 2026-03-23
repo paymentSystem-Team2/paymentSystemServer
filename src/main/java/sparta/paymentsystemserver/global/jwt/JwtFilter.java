@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUserData;
+import sparta.paymentsystemserver.global.redis.RedisBlackListUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final RedisBlackListUtil redisBlackListUtil;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
@@ -55,12 +57,17 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // "Bearer" 제거
         String token = authorization.substring(7);
-
         try {
             if (jwtUtil.isExpired(token)) {
                 sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED");
                 return;
             }
+
+            if (redisBlackListUtil.isBlacklisted(token)) {
+                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "TOKEN_REVOKED");
+                return;
+            }
+
             String email = jwtUtil.getEmail(token);
             Long id = jwtUtil.getId(token);
 
