@@ -173,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
 
     public void confirmOrder(String orderId) {
         Order order = getOrder(orderId);
-        order.PurchaseConfirmed();
+        order.purchaseConfirmed();
     }
 
     private Order getOrder(String orderId) {

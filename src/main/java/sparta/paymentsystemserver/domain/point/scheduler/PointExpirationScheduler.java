@@ -6,8 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import sparta.paymentsystemserver.domain.point.entity.PointTransaction;
 import sparta.paymentsystemserver.domain.point.repository.PointRepository;
-import sparta.paymentsystemserver.domain.user.service.UserService;
-import sparta.paymentsystemserver.global.util.PublicIdGenerator;
+import sparta.paymentsystemserver.domain.point.service.PointExpirationService;
 
 import java.time.LocalDateTime;
 import java.util.List;
