@@ -3,9 +3,12 @@ package sparta.paymentsystemserver.domain.order.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import sparta.paymentsystemserver.domain.order.exception.OrderInvalidStatusException;
 import sparta.paymentsystemserver.domain.user.entity.User;
 
 import java.time.LocalDateTime;
+
+import static sparta.paymentsystemserver.global.exception.ErrorCode.ORDER_STATUS_CHANGE_NOT_ALLOWED;
 
 @Entity
 @Getter
@@ -50,6 +53,9 @@ public class Order {
     @Column
     private LocalDateTime completedAt;
 
+    @Column
+    private LocalDateTime PurchasedAt;
+
     public Order(String orderId, String orderNumber, User user, Long totalAmount, OrderStatus status, LocalDateTime orderedAt) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
@@ -64,19 +70,53 @@ public class Order {
         this.pointDiscountAmount = pointDiscountAmount;
     }
 
-    // 결제 성공 시 > 주문 완료 상태로 변경
-    public void complete() {
+    // 결제 성공 시 > 주문 배송중 상태로 변경
+    public void completePurchase() {
+        checkIsConfirmed();
         this.status = OrderStatus.PAID;
+        this.PurchasedAt = LocalDateTime.now();
+    }
+
+    public void PurchaseConfirmed() {
+        checkIsConfirmed();
+        this.status = OrderStatus.PURCHASE_CONFIRMED;
         this.completedAt = LocalDateTime.now();
+    }
+
+    public void processDelivery() {
+        checkIsConfirmed();
+
+        switch (status) {
+            case PAID:
+                this.status = OrderStatus.SHIPPED;
+                break;
+            case SHIPPED:
+                this.status = OrderStatus.DELIVERED;
+                break;
+            default:
+                throw new OrderInvalidStatusException(ORDER_STATUS_CHANGE_NOT_ALLOWED);
+        }
     }
 
     // 환불 발생 > 환불 상태로 변경
     public void refund() {
+        checkIsConfirmed();
         this.status = OrderStatus.CANCELLED;
     }
 
     // 결제 실패나 내부에서 주문을 더 이상 진행하지 않을 때 취소 상태로 전환
     public void cancel() {
+        checkIsConfirmed();
         this.status = OrderStatus.CANCELLED;
+    }
+
+    private void checkIsConfirmed(){
+        if(isConfirmed()){
+            throw new OrderInvalidStatusException(ORDER_STATUS_CHANGE_NOT_ALLOWED);
+        }
+    }
+
+    public boolean isConfirmed(){
+        return this.status.equals(OrderStatus.PURCHASE_CONFIRMED);
     }
 }

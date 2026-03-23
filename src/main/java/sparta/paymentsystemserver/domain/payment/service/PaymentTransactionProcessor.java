@@ -43,7 +43,7 @@ public class PaymentTransactionProcessor {
         pointService.earnPoints(payment.getUser().getId(), order, payment.getExternalAmount());
 
         // 모든 내부 반영이 끝난 뒤 주문을 결제 완료 상태로 전환
-        order.complete();
+        order.completePurchase();
     }
 
     // 포트원 검증 실패처럼 결제 최종 실패 처리해야 될 때 사용 별도 트랜잭션으로 실패 상태랑 확정해서 남김

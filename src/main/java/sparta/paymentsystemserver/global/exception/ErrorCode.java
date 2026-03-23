@@ -31,6 +31,7 @@ public enum ErrorCode {
     ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORD002", "본인 주문만 접근할 수 있습니다."),
     ORDER_NOT_PAYABLE(HttpStatus.BAD_REQUEST, "ORD003", "결제 가능한 주문 상태가 아닙니다."),
     ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "ORD004", "주문 금액이 일치하지 않습니다."),
+    ORDER_STATUS_CHANGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "ORD005", "주문 상태를 변경 할 수 없습니다."),
 
 //    결제 예외 (PAY###)
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAY001", "결제 정보를 찾을 수 없습니다."),
