@@ -4,16 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sparta.paymentsystemserver.domain.membership.entity.MembershipGrade;
-import sparta.paymentsystemserver.domain.membership.repository.MembershipGradeRepository;
+import sparta.paymentsystemserver.domain.membership.entity.MembershipGradePolicy;
 import sparta.paymentsystemserver.domain.order.entity.Order;
-import sparta.paymentsystemserver.domain.point.dto.response.PointHistoryResponse;
+import sparta.paymentsystemserver.domain.point.dto.PointHistoryResponse;
 import sparta.paymentsystemserver.domain.point.entity.PointTransaction;
 import sparta.paymentsystemserver.domain.point.entity.PointTransactionType;
 import sparta.paymentsystemserver.domain.point.repository.PointRepository;
 import sparta.paymentsystemserver.domain.user.entity.User;
 import sparta.paymentsystemserver.domain.user.service.UserService;
-import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
 import java.math.BigDecimal;
@@ -27,7 +25,6 @@ import java.util.List;
 public class PointService {
 
     private final PointRepository pointRepository;
-    private final MembershipGradeRepository membershipGradeRepository;
     private final UserService userService;
     private final PublicIdGenerator publicIdGenerator;
 
@@ -45,16 +42,10 @@ public class PointService {
     public void earnPoints(Long userId, Order order, Long paymentAmount) {
         User user = userService.findById(userId);
 
-        List<MembershipGrade> policies = membershipGradeRepository
-                .findAllByOrderByMinTotalPaidAmountAsc();
-
-        MembershipGrade membershipGrade = policies.stream()
-                .filter(p -> p.getMembershipCode() == user.getMembershipGrade())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND.getMessage()));
+        MembershipGradePolicy membershipGradePolicy = userService.getUserMemberShip(user);
 
         long points = BigDecimal.valueOf(paymentAmount)
-                .multiply(membershipGrade.getEarnRate())
+                .multiply(membershipGradePolicy.getEarnRate())
                 .longValue();
 
         if (points > 0) {
@@ -72,7 +63,7 @@ public class PointService {
         }
 
         user.addTotalPaidAmount(paymentAmount);
-        user.recalculateMembershipGrade(policies);
+        userService.calculateGrade(user);
 
         log.info("[포인트 적립] userId: {}, 결제금액: {}, 적립포인트: {}, 등급: {}",
                 userId, paymentAmount, points, user.getMembershipGrade());
@@ -152,11 +143,8 @@ public class PointService {
                     userId, target.getPoints());
         }
 
-        List<MembershipGrade> policies = membershipGradeRepository
-                .findAllByOrderByMinTotalPaidAmountAsc();
-
         user.subtractTotalPaidAmount(paymentAmount);
-        user.recalculateMembershipGrade(policies);
+        userService.calculateGrade(user);
 
         log.info("[환불 후 등급 재계산] userId: {}, 누적결제금액: {}, 등급: {}",
                 userId, user.getTotalPaidAmount(), user.getMembershipGrade());

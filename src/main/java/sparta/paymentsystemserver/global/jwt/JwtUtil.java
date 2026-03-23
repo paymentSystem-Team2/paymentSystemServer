@@ -1,6 +1,7 @@
 package sparta.paymentsystemserver.global.jwt;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,19 +25,20 @@ public class JwtUtil {
     }
 
     public String createAccessToken(Long id, String email) {
-        return createToken(id, email, ACCESS_TOKEN_EXPIRATION);
-    }
-
-    public String createRefreshToken(Long id, String email) {
-        return createToken(id, email, REFRESH_TOKEN_EXPIRATION);
-    }
-
-    private String createToken(Long id,String email , long expiration) {
         return Jwts.builder()
                 .subject(email)
                 .claim("userId", id)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String createRefreshToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -49,16 +51,21 @@ public class JwtUtil {
         return getClaims(token).get("userId", Long.class);
     }
 
-    public boolean isExpired(String token) {
-        return getClaims(token).getExpiration().before(new Date());
+    private Claims getClaims(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims();
+        }
     }
 
-    private Claims getClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    public boolean isExpired(String token) {
+
+        return getClaims(token).getExpiration().before(new Date());
     }
 
     public long getRefreshTokenExpiration() {

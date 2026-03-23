@@ -1,15 +1,17 @@
 package sparta.paymentsystemserver.domain.user.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import sparta.paymentsystemserver.domain.membership.entity.MembershipGrade;
 import sparta.paymentsystemserver.domain.membership.entity.MembershipGradeType;
+import sparta.paymentsystemserver.domain.point.exception.InsufficientPointException;
+import sparta.paymentsystemserver.domain.point.exception.InvalidPointException;
 import sparta.paymentsystemserver.global.config.BaseEntity;
-import java.util.List;
+
+import static sparta.paymentsystemserver.global.exception.ErrorCode.POINT_AMOUNT_INVALID;
+import static sparta.paymentsystemserver.global.exception.ErrorCode.POINT_BALANCE_INSUFFICIENT;
 
 @Getter
 @Entity
@@ -69,49 +71,35 @@ public class User extends BaseEntity {
         if (phone != null) this.phone = phone;
     }
 
-
     // 포인트 적립
     public void addPoint(Long amount) {
         if (amount <= 0) {
-            // 이 부분은 ErrorCode에 포인트관련해서 에러 추가를 하면 수정
-            // 예를 들어 throw new InvalidPointAmountException(); 이런식으로 바꿀 예정
-            throw new IllegalArgumentException("적립 포인트는 0보다 커야 합니다.");
+            throw new InvalidPointException(POINT_AMOUNT_INVALID);
         }
         this.pointBalance += amount;
     }
 
-
     // 포인트 잔액 감소
     public void subtractPoint(Long amount) {
         if (amount <= 0) {
-            // InvalidPointAmountException → ErrorCode.POINT002 → 400 대충 이런식?
-            throw new IllegalArgumentException("차감 포인트는 0보다 커야 합니다.");
+            throw new InvalidPointException(POINT_AMOUNT_INVALID);
         }
         if (this.pointBalance < amount) {
-            // throw new InsufficientPointException(); 이런식
-            throw new IllegalStateException("포인트 잔액이 부족합니다.");
+            throw new InsufficientPointException(POINT_BALANCE_INSUFFICIENT);
         }
         this.pointBalance -= amount;
-    }
-
-    // 누적 결제 금액 증가
-    public void addTotalPaidAmount(Long amount) {
-        this.totalPaidAmount += amount;
     }
 
     public void subtractTotalPaidAmount(Long amount) {
         this.totalPaidAmount = Math.max(this.totalPaidAmount - amount, 0L);
     }
 
-    // 누적 결제 금액 기준 멤버십 등급 책정
-    public void recalculateMembershipGrade(List<MembershipGrade> policies) {
-        policies.stream()
-                .filter(policy ->
-                        this.totalPaidAmount >= policy.getMinTotalPaidAmount()
-                                && (policy.getMaxTotalPaidAmount() == null
-                                || this.totalPaidAmount <= policy.getMaxTotalPaidAmount()))
-                .findFirst()
-                .ifPresent(policy -> this.membershipGrade = policy.getMembershipCode());
+    public void addTotalPaidAmount(Long amount) {
+        this.totalPaidAmount += amount;
+    }
+
+    public void updateGrade(MembershipGradeType grade) {
+        this.membershipGrade = grade;
     }
 
 }

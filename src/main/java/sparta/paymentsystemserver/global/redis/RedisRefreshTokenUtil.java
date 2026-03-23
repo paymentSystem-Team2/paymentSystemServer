@@ -14,7 +14,6 @@ public class RedisRefreshTokenUtil {
 
     private static final String PREFIX = "refresh:";
 
-    // 저장 (만료 시간 동일하게 설정)
     public void save(Long userId, String refreshToken, long expirationMs) {
         redisTemplate.opsForValue().set(
                 PREFIX + userId,
