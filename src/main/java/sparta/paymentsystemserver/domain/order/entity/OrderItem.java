@@ -1,9 +1,10 @@
 package sparta.paymentsystemserver.domain.order.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import sparta.paymentsystemserver.domain.product.entity.Product;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Table(name = "order_items")
 @NoArgsConstructor
-@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class OrderItem {
 
     @Id
@@ -42,7 +43,16 @@ public class OrderItem {
     private Long productPrice;
 
     // 생성일시
+    @CreatedDate
     @Column(nullable = false)
     private LocalDateTime orderedAt;
+
+    public OrderItem(Order order, Product product, Long quantity, String productName, Long productPrice) {
+        this.order = order;
+        this.product = product;
+        this.quantity = quantity;
+        this.productName = productName;
+        this.productPrice = productPrice;
+    }
 
 }

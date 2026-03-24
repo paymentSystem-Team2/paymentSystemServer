@@ -2,11 +2,14 @@ package sparta.paymentsystemserver.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.InternalException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.auth.dto.SignupResponse;
+import sparta.paymentsystemserver.domain.membership.entity.MembershipGradePolicy;
+import sparta.paymentsystemserver.domain.membership.entity.MembershipGradeType;
+import sparta.paymentsystemserver.domain.membership.exception.MembershipNotFoundException;
+import sparta.paymentsystemserver.domain.membership.service.MembershipService;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
 import sparta.paymentsystemserver.domain.user.dto.UserResponse;
 import sparta.paymentsystemserver.domain.user.dto.UserUpdateRequest;
@@ -17,6 +20,9 @@ import sparta.paymentsystemserver.domain.user.repository.UserRepository;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PublicIdGenerator publicIdGenerator;
+    private final MembershipService membershipService;
 
     // 회원가입: 이메일 중복 확인 후 사용자 저장
     @Transactional
@@ -48,22 +55,8 @@ public class UserService {
                 customerUid
         );
 
-        try {
-            userRepository.save(user);
-            return new SignupResponse(
-                    true, "성공적으로 회원 가입하였습니다.");
-        } catch (Exception e){
-            log.error("[AUTH : 회원 가입 로직 중 에러 발생] " +  e.getMessage());
-            throw new InternalException("알수 없는 오류");
-        }
-    }
-
-    // 이메일로 사용자 조회 -> 없으면 UserNotFoundException 발생
-    @Transactional(readOnly = true)
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
-        );
+        userRepository.save(user);
+        return new SignupResponse(true, "성공적으로 회원 가입하였습니다.");
     }
 
     @Transactional(readOnly = true)
@@ -103,5 +96,37 @@ public class UserService {
         return userRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
         );
+    }
+
+    // 이메일로 사용자 조회 -> 없으면 UserNotFoundException 발생
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND)
+        );
+    }
+
+    @Transactional
+    public void calculateGrade(User user) {
+        List<MembershipGradePolicy> membershipGradePolicyList = membershipService.findPolicyByType();
+
+        MembershipGradeType newGrade = membershipGradePolicyList.stream()
+                .filter(policy -> user.getTotalPaidAmount() >= policy.getMinTotalPaidAmount())
+                .max(Comparator.comparing(MembershipGradePolicy::getMinTotalPaidAmount))
+                .map(MembershipGradePolicy::getMembershipCode)
+                .orElse(MembershipGradeType.NORMAL);
+
+        user.updateGrade(newGrade);
+    }
+
+    @Transactional
+    public MembershipGradePolicy getUserMemberShip(User user) {
+
+        List<MembershipGradePolicy> membershipGradePolicyList = membershipService.findPolicyByType();
+
+        return membershipGradePolicyList.stream()
+                .filter(p -> p.getMembershipCode() == user.getMembershipGrade())
+                .findFirst()
+                .orElseThrow(() -> new MembershipNotFoundException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND));
     }
 }

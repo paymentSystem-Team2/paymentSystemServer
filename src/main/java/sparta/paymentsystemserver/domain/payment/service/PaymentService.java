@@ -32,6 +32,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final PublicIdGenerator publicIdGenerator;
     private final PortOnePaymentClient portOnePaymentClient;
+    private final PaymentTransactionProcessor paymentTransactionProcessor;
 
     // 결제 시도 생성 메서드
     // 이 단계에서는 실제 결제를 확정하지 않고, 프론트가 포트원 결제창을 열기 전에 서버에 READY 상태 결제를 미리 저장하는 용도
@@ -70,9 +71,7 @@ public class PaymentService {
         }
 
         long externalAmount = order.getTotalAmount() - request.pointsToUse();
-
         PaymentProvider provider = externalAmount == 0 ? PaymentProvider.INTERNAL : PaymentProvider.PORTONE;
-
         String paymentId = publicIdGenerator.generate("PAY");
 
         Payment payment = Payment.ready(
@@ -100,27 +99,24 @@ public class PaymentService {
     }
 
     // 결제 확정 메서드
-    // 클라이언트가 결제 성공이라고 보내더라도 서버가 PortOne 결제 조회 API를 호출해 최종 상태를 검증한 뒤에만 결제를 확정
+    // 클라이언트가 결제 성공이라고 보내더라도 서버가 포트원 결제 조회 API를 호출해 최종 상태를 검증한 뒤에만 결제를 확정
     @Transactional
     public PaymentResultResponse confirmPayment(String paymentId, Long userId) {
-
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
+        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        // 본인 결제만 확정할 수 있도록 소유권을 검사
+        // 본인 결제만 확정할 수 있도록 소유권 검사
         if (!payment.getUser().getId().equals(userId)) {
             throw new PaymentException(ErrorCode.ORDER_ACCESS_DENIED);
         }
-
         return confirmPaymentInternal(payment);
     }
 
 
-    // 내부 공용 결제 확정 메서드
-    // 클라이언트 쪽의 confirm과 webhook confirm이 같은 로직을 재사용하도록 분리
+    // 웹훅에서도 결제 확정 로직 재사용
     @Transactional
     public PaymentResultResponse confirmPaymentByWebhook(String paymentId) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
+        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
         return confirmPaymentInternal(payment);
@@ -147,36 +143,48 @@ public class PaymentService {
             throw new PaymentException(ErrorCode.PAYMENT_CONFIRM_NOT_ALLOWED);
         }
 
-        // 내부 포인트 전액 결제는 외부 조회 없이 바로 성공 처리
+        // 외부 호출이 없는 내부 결제는 즉시 성공 처리
         if (payment.getProvider() == PaymentProvider.INTERNAL) {
-            payment.markPaid("INTERNAL");
-            payment.getOrder().complete();
-
-            return new PaymentResultResponse(
-                    true,
-                    payment.getPaymentId(),
-                    payment.getOrder().getOrderId(),
-                    payment.getStatus().name()
-            );
+            paymentTransactionProcessor.processSuccess(payment, "INTERNAL");
+            return toResult(payment);
         }
 
         // 포트원 재조회
-        PortOnePaymentInfo paymentInfo =
-                portOnePaymentClient.getPayment(payment.getPaymentId());
+        PortOnePaymentInfo paymentInfo = portOnePaymentClient.getPayment(payment.getPaymentId());
 
         if (!paymentInfo.isPaid()) {
-            payment.markFailed("PortOne 결제 상태가 PAID가 아닙니다.");
+            paymentTransactionProcessor.handleVerificationFailure(
+                    payment.getPaymentId(),
+                    "PortOne 결제 상태가 PAID가 아닙니다."
+            );
             throw new PaymentException(ErrorCode.PAYMENT_VERIFICATION_FAILED);
         }
 
         if (paymentInfo.amount() != payment.getExternalAmount()) {
-            payment.markFailed("PortOne 승인 금액과 서버 계산 금액이 일치하지 않습니다.");
+            paymentTransactionProcessor.handleVerificationFailure(
+                    payment.getPaymentId(),
+                    "PortOne 승인 금액과 서버 계산 금액이 일치하지 않습니다."
+            );
             throw new PaymentException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        payment.markPaid(paymentInfo.transactionId());
-        payment.getOrder().complete();
+        try {
+            // 외부 결제 성공이 검증되면 내부 성공 후처리를 수행
+            paymentTransactionProcessor.processSuccess(payment, paymentInfo.transactionId());
+        } catch (Exception exception) {
+            paymentTransactionProcessor.compensate(
+                    payment.getPaymentId(),
+                    "결제 후처리 실패로 인한 자동 취소"
+            );
+            throw exception;
+        }
 
+        return toResult(payment);
+
+    }
+
+    // 결제 성공 응답 생성 메서드
+    private PaymentResultResponse toResult(Payment payment) {
         return new PaymentResultResponse(
                 true,
                 payment.getPaymentId(),
@@ -184,5 +192,5 @@ public class PaymentService {
                 payment.getStatus().name()
         );
     }
-
 }
+

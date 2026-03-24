@@ -32,7 +32,7 @@ public class PurchaseConfirmScheduler {
 
 //        결제 완료된 지 7일이 넘은 주문들 조회
         List<Order> targets = orderRepository
-                .findByStatusAndCompletedAtBefore(OrderStatus.PAID, threshold);
+                .findByStatusAndPurchasedAtBefore(OrderStatus.PAID, threshold);
 
         if (targets.isEmpty()) {
             log.info("[구매확정 스케쥴러] 대상 없음");
@@ -43,7 +43,7 @@ public class PurchaseConfirmScheduler {
 
         for (Order order : targets) {
             try {
-                order.complete();
+                order.purchaseConfirmed();
                 pointService.earnPoints(
                         order.getUser().getId(),
                         order,
