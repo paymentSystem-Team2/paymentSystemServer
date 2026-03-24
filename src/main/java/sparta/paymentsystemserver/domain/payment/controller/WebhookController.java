@@ -4,15 +4,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookRequest;
 import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookResponse;
 import sparta.paymentsystemserver.domain.payment.service.WebhookService;
 
-import java.util.Collections;
 
-// 포트원 웹훅 진입점 컨트롤러는
-// 1. 들어온 헤더와 핵심 payload 값을 로그로 남김
-// 2. 실제 비즈니스 처리는 WebhookService에 위임
+import static io.portone.sdk.server.webhook.WebhookVerifier.*;
+
+// 포트원 결제 웹훅의 진입점을 담당하는 컨트롤러
+// 1. 포트원으로부터 전달된 raw body와 웹훅 헤더를 수신한다
+// 2. Webhook-Id, Webhook-Signature, Webhook-Timestamp 헤더를 추출한다.
+// 3. 실제 서명 검증, payload 파싱, 비즈니스 처리는 WebhookService에 위임한다.
 @Slf4j
 @RestController
 @RequestMapping("/api/webhooks/payments")
@@ -21,29 +22,28 @@ public class WebhookController {
 
     private final WebhookService webhookService;
 
+    // 포트원 웹훅 요청을 수신한다
     @PostMapping
     public PortOneWebhookResponse receiveWebhook(
-            @RequestHeader(value = "Webhook-Id", required = false) String webhookId,
-            @RequestBody PortOneWebhookRequest request,
+            @RequestBody String rawBody,
             HttpServletRequest httpServletRequest
     ) {
-        Collections.list(httpServletRequest.getHeaderNames())
-                .forEach(name -> log.info("[Webhook][헤더] {}={}", name, httpServletRequest.getHeader(name)));
-
-        // 포트원은 Webhook-Id 헤더를 이벤트의 고유 식별자로 사용
-        String resolvedWebhookId = webhookId != null
-                ? webhookId
-                : httpServletRequest.getHeader("webhook-id");
-
-        log.info("[Webhook][매핑] webhookId={}", resolvedWebhookId);
         log.info(
-                "[Webhook][본문] type={}, paymentId={}, transactionId={}, storeId={}",
-                request.providerStatus(),
-                request.paymentId(),
-                request.data() != null ? request.data().transactionId() : null,
-                request.data() != null ? request.data().storeId() : null
-        );
+                "[Webhook][헤더] webhookId={}, webhookTimestamp={}",
+                httpServletRequest.getHeader(HEADER_ID),
+                httpServletRequest.getHeader(HEADER_TIMESTAMP));
 
-        return webhookService.processWebhook(resolvedWebhookId, request);
+        String webhookId = httpServletRequest.getHeader(HEADER_ID);
+        String webhookSignature = httpServletRequest.getHeader(HEADER_SIGNATURE);
+        String webhookTimestamp = httpServletRequest.getHeader(HEADER_TIMESTAMP);
+
+        log.info("[Webhook][매핑] webhookId={}", webhookId);
+
+        return webhookService.processWebhook(
+                webhookId,
+                rawBody,
+                webhookSignature,
+                webhookTimestamp
+        );
     }
 }
