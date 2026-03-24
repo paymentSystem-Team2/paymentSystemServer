@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.auth.dto.SignupResponse;
 import sparta.paymentsystemserver.domain.membership.entity.MembershipGradePolicy;
 import sparta.paymentsystemserver.domain.membership.entity.MembershipGradeType;
+import sparta.paymentsystemserver.domain.membership.exception.MembershipNotFoundException;
 import sparta.paymentsystemserver.domain.membership.service.MembershipService;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
 import sparta.paymentsystemserver.domain.user.dto.UserResponse;
@@ -126,6 +127,6 @@ public class UserService {
         return membershipGradePolicyList.stream()
                 .filter(p -> p.getMembershipCode() == user.getMembershipGrade())
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new MembershipNotFoundException(ErrorCode.MEMBERSHIP_GRADE_NOT_FOUND));
     }
 }
