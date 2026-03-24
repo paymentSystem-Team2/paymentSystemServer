@@ -68,8 +68,10 @@ public enum ErrorCode {
     POINT_TRANSACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "PNT003", "포인트 거래 내역을 찾을 수 없습니다."),
 
 //    멤버십 예외 (MEM###)
-    MEMBERSHIP_GRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "MEM001", "멤버십 등급 정책을 찾을 수 없습니다.");
+    MEMBERSHIP_GRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "MEM001", "멤버십 등급 정책을 찾을 수 없습니다."),
 
+    // 관리자 예외 (ADMIN###)
+    ADMIN_ONLY(HttpStatus.FORBIDDEN, "ADMIN001", "관리자만 접근 가능합니다.");
 
     private final HttpStatus status;
     private final String code;

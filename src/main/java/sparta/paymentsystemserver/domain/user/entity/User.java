@@ -131,4 +131,12 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
+
+    public boolean isUser() {
+        return role == UserRole.USER;
+    }
+
 }
