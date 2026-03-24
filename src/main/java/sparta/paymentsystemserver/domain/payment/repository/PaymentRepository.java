@@ -1,7 +1,11 @@
 package sparta.paymentsystemserver.domain.payment.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentStatus;
 
@@ -18,4 +22,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     // 주문에 연결된 READY 상태인 결제들을 조회
     List<Payment> findAllByOrder_IdAndStatus(Long orderId, PaymentStatus status);
+
+    // 결제 확정 시 동일 payment에 대한 동시 처리 충돌을 막기 위해 비관적 락으로 조회한다
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Payment p join fetch p.order join fetch p.user where p.paymentId = :paymentId")
+    Optional<Payment> findByPaymentIdForUpdate(@Param("paymentId") String paymentId);
 }

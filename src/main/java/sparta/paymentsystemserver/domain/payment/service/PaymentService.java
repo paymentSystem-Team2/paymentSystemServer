@@ -102,7 +102,7 @@ public class PaymentService {
     // 클라이언트가 결제 성공이라고 보내더라도 서버가 포트원 결제 조회 API를 호출해 최종 상태를 검증한 뒤에만 결제를 확정
     @Transactional
     public PaymentResultResponse confirmPayment(String paymentId, Long userId) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
+        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
         // 본인 결제만 확정할 수 있도록 소유권 검사
@@ -116,7 +116,7 @@ public class PaymentService {
     // 웹훅에서도 결제 확정 로직 재사용
     @Transactional
     public PaymentResultResponse confirmPaymentByWebhook(String paymentId) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
+        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
         return confirmPaymentInternal(payment);
