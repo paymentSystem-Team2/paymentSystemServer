@@ -12,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import sparta.paymentsystemserver.domain.auth.handler.OAuth2SuccessHandler;
+import sparta.paymentsystemserver.domain.auth.service.CustomOAuth2UserService;
 import sparta.paymentsystemserver.global.jwt.JwtFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -26,6 +28,10 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+
+    private final CustomOAuth2UserService customOAuth2UserService;
+
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -47,9 +53,17 @@ public class SecurityConfig {
                         "/api/auth/refresh",
                         "/api/webhooks/**",
                         "/api/public/**",
-                        "/actuator/health"
+                        "/actuator/health",
+                        "/login/oauth2/**",
+                        "/oauth2/**"
                 ).permitAll()
                 .anyRequest().authenticated()
+        );
+
+        http.oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                        .userService(customOAuth2UserService))
+                .successHandler(oAuth2SuccessHandler)
         );
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -73,7 +73,8 @@ public class DataInitializer implements ApplicationRunner {
                         0L,
                         "NORMAL",
                         0L,
-                        "010-1111-1111"
+                        "010-1111-1111",
+                        "LOCAL"
                 },
                 new Object[]{
                         "admin1",
@@ -83,14 +84,15 @@ public class DataInitializer implements ApplicationRunner {
                         1000L,
                         "VIP",
                         300000L,
-                        "010-2222-2222"
+                        "010-2222-2222",
+                        "LOCAL"
                 }
         );
 
         jdbcTemplate.batchUpdate(
                 "INSERT INTO users " +
-                        "(name, email, password, customer_uid, point_balance, membership_grade, total_paid_amount, phone) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        "(name, email, password, customer_uid, point_balance, membership_grade, total_paid_amount, phone, provider) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 batchArgs
         );
     }

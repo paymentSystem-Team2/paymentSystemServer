@@ -33,8 +33,16 @@ public class User extends BaseEntity {
     private String email;
 
     // 비밀번호
-    @Column(nullable = false)
+    // OAuth 도입으로 필수 제거
+    @Column
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    @Column
+    private String providerId;
 
     // PortOne 빌링 고객 식별자
     @Column(nullable = false)
@@ -63,6 +71,17 @@ public class User extends BaseEntity {
         this.password = password;
         this.phone = phone;
         this.customerUid = customerUid;
+    }
+
+    // Google OAuth 전용 생성자
+    public User(String name, String email, String phone, String customerUid, AuthProvider provider, String providerId) {
+        this.name = name;
+        this.email = email;
+        this.password = null;
+        this.phone = phone;
+        this.customerUid = customerUid;
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     // 사용자 정보 수정 - 이름, 전화번호 변경
