@@ -1,18 +1,16 @@
 package sparta.paymentsystemserver.domain.product.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.product.exception.ProductStockException;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 
 @Entity
 @Getter
 @Table(name = "products")
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
 
     @Id
@@ -39,6 +37,24 @@ public class Product {
 
     @Column(nullable = false)
     private String category;
+
+    public Product(
+            String productId,
+            String name,
+            Long price,
+            Long stock,
+            String description,
+            ProductStatus status,
+            String category
+    ) {
+        this.productId = productId;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        this.description = description;
+        this.status = status;
+        this.category = category;
+    }
 
     // 재고 감소
     public void decreaseStock(Long quantity){
