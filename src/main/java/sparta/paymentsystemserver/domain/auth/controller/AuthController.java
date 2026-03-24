@@ -4,16 +4,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sparta.paymentsystemserver.domain.auth.dto.*;
 import sparta.paymentsystemserver.domain.auth.service.AuthService;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
-
-import java.time.Duration;
 
 @Slf4j
 @RestController
@@ -34,35 +30,21 @@ public class AuthController {
         LoginUser loginUser = authService.login(requestDto);
         LoginUserResponse loginUserResponse = new LoginUserResponse(true, loginUser.email());
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", loginUser.refreshToken())
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-        return ResponseEntity.status(HttpStatus.OK).header("Authorization" ,"Bearer " + loginUser.token()).body(loginUserResponse);
+        return ResponseEntity.status(HttpStatus.OK)
+                .header("Authorization" ,"Bearer " + loginUser.token())
+                .header("X-Refresh-Token" ,"Bearer " + loginUser.refreshToken())
+                .body(loginUserResponse);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<Void> refresh(
             @RequestHeader("Refresh-Token") String refreshToken,
-            @RequestHeader("Authorization") String accessToken
-            , HttpServletResponse response) {
+            @RequestHeader("Authorization") String accessToken) {
         TokenResponse tokenResponse = authService.reissue(refreshToken,accessToken);
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenResponse.newRefreshToken())
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ofDays(7))
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .header("Authorization" ,"Bearer " + tokenResponse.newAccessToken())
+                .header("X-Refresh-Token" ,"Bearer " + tokenResponse.newRefreshToken())
                 .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-        return ResponseEntity.status(HttpStatus.OK).header("Authorization" ,"Bearer " + tokenResponse.newAccessToken()).build();
     }
 }
