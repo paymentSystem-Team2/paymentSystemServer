@@ -11,6 +11,7 @@ import sparta.paymentsystemserver.domain.order.exception.OrderException;
 import sparta.paymentsystemserver.domain.point.exception.PointException;
 import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
+import sparta.paymentsystemserver.domain.subscription.exception.SubscriptionException;
 import sparta.paymentsystemserver.domain.user.exception.UserException;
 
 import java.util.List;
@@ -86,6 +87,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PaymentException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handlePaymentException(PaymentException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode));
+    }
+
+    //    구독 예외 로직 부분
+    @ExceptionHandler(SubscriptionException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleSubscriptionException(SubscriptionException e) {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getStatus())
