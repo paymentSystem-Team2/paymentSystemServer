@@ -20,6 +20,7 @@ import sparta.paymentsystemserver.global.redis.RedisRefreshTokenUtil;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -35,7 +36,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 //        DefaultOAuth2User가 주입된 상태
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        String email = (String) oAuth2User.getAttributes().get("email");
+        String email;
+        Object kakaoAccount = oAuth2User.getAttributes().get("kakao_account");
+        if (kakaoAccount != null) {
+            email = (String) ((Map<String, Object>) kakaoAccount).get("email");
+        } else {
+            email = (String) oAuth2User.getAttributes().get("email");
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));

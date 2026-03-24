@@ -37,31 +37,44 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 //        구글 서버에 요청해서 사용자 정보(JSON) 가져오는 것
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
-        OAuthUserInfo userInfo = OAuthUserInfo.from(oAuth2User.getAttributes());
+//        구글인지, 카카오인지 구분
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+
+        OAuthUserInfo userInfo = OAuthUserInfo.of(registrationId, oAuth2User.getAttributes());
+
+        AuthProvider provider = "kakao".equals(registrationId)
+                ? AuthProvider.KAKAO
+                : AuthProvider.GOOGLE;
 
         userRepository.findByEmail(userInfo.email())
-                .orElseGet(() -> registerNewUser(userInfo));
+                .orElseGet(() -> registerNewUser(userInfo, provider));
 
-        log.info("[OAuth 로그인] email: {}", userInfo.email());
+        log.info("[OAuth 로그인] provider: {}, email: {}", registrationId, userInfo.email());
+
+//        구글: "email", 카카오: "id"
+        String userNameAttributeName = userRequest.getClientRegistration()
+                .getProviderDetails()
+                .getUserInfoEndpoint()
+                .getUserNameAttributeName();
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 oAuth2User.getAttributes(),
-                "email"
+                userNameAttributeName
         );
     }
 
-    private User registerNewUser(OAuthUserInfo userInfo) {
+    private User registerNewUser(OAuthUserInfo userInfo, AuthProvider provider) {
         User user = new User(
                 userInfo.name(),
                 userInfo.email(),
                 "",
                 publicIdGenerator.generate("USR"),
-                AuthProvider.GOOGLE,
+                provider,
                 userInfo.providerId()
         );
 
-        log.info("[OAuth 신규 회원가입] email: {}", userInfo.email());
+        log.info("[OAuth 신규 회원가입] provider:{}, email: {}", provider, userInfo.email());
         return userRepository.save(user);
     }
 }
