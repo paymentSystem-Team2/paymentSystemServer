@@ -28,5 +28,8 @@ logging:
 jwt:
   secret: ${JWT_SECRET}
 
+oauth2:
+  redirect-url: ${OAUTH2_REDIRECT_URL}
+
 api:
   base-url:

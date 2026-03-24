@@ -44,6 +44,9 @@ api:
           - name: Authorization
             required: true
             description: "JWT 토큰 (Bearer {token} 형식)"
+          - name: X-Refresh-Token
+            required: true
+            description: "JWT 토큰 (Bearer {token} 형식)"
         body:
           fields:
             - name: success
