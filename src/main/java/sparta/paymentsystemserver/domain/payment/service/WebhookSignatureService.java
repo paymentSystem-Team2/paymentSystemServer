@@ -6,6 +6,8 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
+import sparta.paymentsystemserver.global.exception.ErrorCode;
 
 // 포트원 웹훅 서명 검증을 담당하는 서비스
 // 설정값으로 주입된 webhook secret를 사용해서 WebhookVerifier를 초기화한다
@@ -19,7 +21,7 @@ public class WebhookSignatureService {
 
     private WebhookVerifier webhookVerifier;
 
-    // 주주입된 webhook secret으로 WebhookVerifier를 초기화함
+    // 주입된 webhook secret으로 WebhookVerifier를 초기화함
     @PostConstruct
     void init() {
         webhookVerifier = new WebhookVerifier(webhookSecret);
@@ -37,7 +39,7 @@ public class WebhookSignatureService {
             log.info("[Webhook] 서명 검증 성공 - webhookId={}", webhookId);
         } catch (WebhookVerificationException exception) {
             log.error("[Webhook] 서명 검증 실패 - webhookId={}", webhookId, exception);
-            throw new IllegalArgumentException("유효하지 않은 webhook 서명입니다.", exception);
+            throw new PaymentException(ErrorCode.INVALID_WEBHOOK_SIGNATURE);
         }
     }
 }

@@ -3,7 +3,6 @@ package sparta.paymentsystemserver.domain.payment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookRequest;
 import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookResponse;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
