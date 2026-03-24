@@ -12,7 +12,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import sparta.paymentsystemserver.domain.user.entity.User;
+import sparta.paymentsystemserver.domain.user.exception.UserNotFoundException;
 import sparta.paymentsystemserver.domain.user.repository.UserRepository;
+import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.jwt.JwtUtil;
 import sparta.paymentsystemserver.global.redis.RedisRefreshTokenUtil;
 
@@ -36,7 +38,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String email = (String) oAuth2User.getAttributes().get("email");
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
 
         String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail());
         String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
