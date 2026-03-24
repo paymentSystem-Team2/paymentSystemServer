@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 // 실제 포트원 결제 웹훅은 이런 형태로 들어온다
 // - type: Transaction.Ready, Transaction.Paid 같은 이벤트 이름
 // - timestamp: PortOne에서 이벤트를 발생시킨 시각
-// - data: transactionId, paymentId, storeId가 들어 있는 중첩 객체
+// - data: transactionId, paymentId, storeId, cancellationId가 들어 있는 중첩 객체
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record PortOneWebhookRequest(
         String type,
@@ -29,7 +29,8 @@ public record PortOneWebhookRequest(
     public record Data(
             String transactionId,
             String paymentId,
-            String storeId
+            String storeId,
+            String cancellationId
     ) {
     }
 }

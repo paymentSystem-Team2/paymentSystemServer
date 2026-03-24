@@ -11,6 +11,7 @@ import sparta.paymentsystemserver.domain.payment.entity.PaymentStatus;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentWebhookEvent;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentWebhookEventRepository;
+import tools.jackson.databind.ObjectMapper;
 
 // 포트원 웹훅 처리 서비스
 // 현재 웹훅 처리 정책
@@ -29,8 +30,32 @@ public class WebhookService {
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
     private final RefundService refundService;
+    private final ObjectMapper objectMapper;
+    private final WebhookSignatureService webhookSignatureService;
 
-    public PortOneWebhookResponse processWebhook(String webhookId, PortOneWebhookRequest request) {
+    // 웹훅 진입 메서드
+    // WebhookSignatureService를 통해 서명을 검증하고 -> raw body를 PortOneWebhookRequest로 파싱
+    // 파싱된 요청을 기존 이벤트 처리 메서드로 전잘
+    // 서명 검증 또는 페이로드 파싱에 실패하면 유효하지 않은 웹훅 요청으로 간주하고 실패 응답 반환
+    public PortOneWebhookResponse processWebhook(
+            String webhookId,
+            String rawBody,
+            String webhookSignature,
+            String webhookTimestamp
+    ) {
+        try {
+            webhookSignatureService.verify(rawBody, webhookId, webhookSignature, webhookTimestamp);
+
+            PortOneWebhookRequest request = objectMapper.readValue(rawBody, PortOneWebhookRequest.class);
+
+            return processWebhookEvent(webhookId, request);
+        } catch (Exception exception) {
+            log.error("[Webhook] 서명 검증 또는 payload 파싱 실패 - webhookId={}", webhookId, exception);
+            return new PortOneWebhookResponse(false, "유효하지 않은 webhook 요청입니다.");
+        }
+    }
+
+    public PortOneWebhookResponse processWebhookEvent(String webhookId, PortOneWebhookRequest request) {
         String paymentId = request.paymentId();
         String providerStatus = request.providerStatus();
         String resolvedWebhookId = resolveWebhookId(webhookId, paymentId);

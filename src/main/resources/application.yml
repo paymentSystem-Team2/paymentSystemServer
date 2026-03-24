@@ -30,6 +30,8 @@ portone:
     kg-inicis: ${PORTONE_CHANNEL_KG}
     # billingKey 발급용 토스 페이먼츠 채널키
     toss: ${PORTONE_CHANNEL_TOSS}
+  webhook:
+    secret: ${PORTONE_WEBHOOK_SECRET}
 
 app:
   ui:
