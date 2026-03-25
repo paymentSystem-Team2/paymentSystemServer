@@ -5,8 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -19,7 +18,6 @@ import sparta.paymentsystemserver.global.jwt.JwtUtil;
 import sparta.paymentsystemserver.global.redis.RedisRefreshTokenUtil;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 
 @Slf4j
@@ -30,6 +28,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final RedisRefreshTokenUtil redisRefreshTokenUtil;
+
+    @Value("${oauth2.redirect-url}")
+    private String redirectUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -52,23 +53,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         redisRefreshTokenUtil.save(user.getId(), refreshToken, jwtUtil.getRefreshTokenExpiration());
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
 //        프론트에서 토큰을 꺼내 저장
-        String redirectUrl = "https://test.2run2run.click/pages/oauth2-callback.html"
-                + "?token=" + accessToken;
+        String redirectUri = redirectUrl + "?access_token=" + accessToken + "&refresh_token=" + refreshToken;
 
         log.info("[OAuth 로그인 성공] email: {}, userId: {}", email, user.getId());
 
 //        리다이렉트 수행
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+        getRedirectStrategy().sendRedirect(request, response, redirectUri);
     }
 }

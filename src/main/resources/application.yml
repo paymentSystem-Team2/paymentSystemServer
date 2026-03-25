@@ -1,4 +1,8 @@
 spring:
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
   config:
     import:
       - classpath:client-api-config.yml

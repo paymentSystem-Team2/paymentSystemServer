@@ -44,6 +44,9 @@ api:
           - name: Authorization
             required: true
             description: "JWT 토큰 (Bearer {token} 형식)"
+          - name: X-Refresh-Token
+            required: true
+            description: "JWT 토큰 (Bearer {token} 형식)"
         body:
           fields:
             - name: success
@@ -377,8 +380,8 @@ api:
               description: 결제 주기 (MONTHLY, QUARTERLY, ANNUAL)
 
     create-subscription:
-      url:
-      method:
+      url: /api/subscriptions
+      method: POST
       description: 구독 생성 (빌링키 저장 + 구독 생성을 하나의 트랜잭션으로 처리)
       request:
         fields:
@@ -408,11 +411,11 @@ api:
               usage: 구독 관리 페이지 리다이렉트에 사용
 
     get-subscription:
-      url:
-      method:
+      url:  /api/subscriptions/{subscriptionId}
+      method: GET
       description: 구독 조회
       pathParams:
-        - name:
+        - name: subscriptionId
           description: 구독 ID
       response:
         body:
@@ -427,6 +430,9 @@ api:
             - name: planId
               type: string
               required: true
+            - name: pendingPlanId
+              type: string
+              required: false
             - name: paymentMethodId
               type: string
               required: false
@@ -434,32 +440,45 @@ api:
             - name: status
               type: string
               required: true
-              description: "구독 상태 (ACTIVE: 활성, CANCELLED: 해지, SUSPENDED: 미납, EXPIRED: 기간 종료)"
+              description: "구독 상태 (PENDING: 첫 번째 청구 미납, ACTIVE: 활성, CANCELLED: 최종 종료 상태, SUSPENDED: ACTIVE 이후 정기 청구 실패 상태, EXPIRED: 기간 종료)"
             - name: amount
               type: number
+              required: true
+            - name: currentPeriodStart
+              type: string
               required: true
             - name: currentPeriodEnd
               type: string
               required: true
               description: "현재 이용 기간 종료일 (ISO 8601 형식, 예: 2026-03-01T23:59:59)"
+            - name: nextBillingAt
+              type: string
+              required: true
+            - name: cancelAtPeriodEnd
+              type: boolean
+              required: true
+              description: "true이면 해지 예약 상태이며 현재 기간 종료 후 구독이 종료됨"
 
     update-subscription:
-      url:
-      method:
+      url: /api/subscriptions/{subscriptionId}
+      method: PATCH
       description: 구독 상태 업데이트 (구독 해지)
       pathParams:
-        - name:
+        - name: subscriptionId
           description: 구독 ID
       request:
         fields:
           - name: action
             type: string
             required: true
-            description: "액션 타입: 'cancel' (구독 해지) 등"
+            description: "액션 값: 'cancel' (해지 예약), 'resume' 또는 'keep' (해지 예약 취소), 'changePlan' (플랜 변경 예약)"
           - name: reason
             type: string
             required: false
             description: 해지 사유
+          - name: planId
+            type: string
+            required: false
       response:
         body:
           fields:
@@ -476,11 +495,11 @@ api:
               description: 변경된 구독 상태
 
     create-billing:
-      url:
-      method:
+      url: /api/subscriptions/{subscriptionId}/billings
+      method: POST
       description: 즉시 결제 (현재 주기 청구 실행)
       pathParams:
-        - name:
+        - name: subscriptionId
           description: 구독 ID
       request:
         fields:
@@ -513,14 +532,14 @@ api:
             - name: status
               type: string
               required: true
-              description: "청구 상태 (COMPLETED: 결제 완료, FAILED: 실패)"
+              description: "청구 상태 (PENDING: 청구 생성 직후 대기 상태, COMPLETED: 결제 완료, FAILED: 결제 실패)"
 
     list-billing-history:
-      url:
-      method:
+      url: /api/subscriptions/{subscriptionId}/billings
+      method: GET
       description: 청구 내역 조회
       pathParams:
-        - name:
+        - name: subscriptionId
           description: 구독 ID
       response:
         body:
@@ -529,3 +548,4 @@ api:
               type: array
               required: true
               description: "청구 내역 배열. 각 요소는 { billingId: string (필수), periodStart: string (필수, ISO 8601), periodEnd: string (필수, ISO 8601), amount: number (필수), status: string (필수, COMPLETED/FAILED/PENDING), paymentId: string (선택), attemptDate: string (선택, ISO 8601), failureMessage: string (선택) } 형태"
+

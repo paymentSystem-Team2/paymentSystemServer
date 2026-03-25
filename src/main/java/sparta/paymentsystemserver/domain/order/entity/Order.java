@@ -61,6 +61,8 @@ public class Order {
         this.orderNumber = orderNumber;
         this.user = user;
         this.totalAmount = totalAmount;
+        this.usedPoints = usedPoints;
+        this.pointDiscountAmount = pointDiscountAmount;
         this.status = status;
         this.orderedAt = orderedAt;
     }

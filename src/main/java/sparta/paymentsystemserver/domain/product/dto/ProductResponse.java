@@ -5,4 +5,5 @@ public record ProductResponse(
         String id,
         String name,
         Long price,
-        Long stock){}
+        Long stock,
+        String thumbnailImage ){}

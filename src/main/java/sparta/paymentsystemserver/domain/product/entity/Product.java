@@ -1,18 +1,19 @@
 package sparta.paymentsystemserver.domain.product.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import sparta.paymentsystemserver.domain.product.exception.ProductException;
 import sparta.paymentsystemserver.domain.product.exception.ProductStockException;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Table(name = "products")
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
 
     @Id
@@ -39,6 +40,24 @@ public class Product {
 
     @Column(nullable = false)
     private String category;
+
+    public Product(
+            String productId,
+            String name,
+            Long price,
+            Long stock,
+            String description,
+            ProductStatus status,
+            String category
+    ) {
+        this.productId = productId;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        this.description = description;
+        this.status = status;
+        this.category = category;
+    }
 
     // 재고 감소
     public void decreaseStock(Long quantity){
@@ -68,6 +87,16 @@ public class Product {
         if (this.status == ProductStatus.SOLD_OUT && this.stock > 0) {
             this.status = ProductStatus.ON_SALE;
         }
+    }
+
+    // 상품 이미지 추가
+    @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url")
+    private List<String> productImages = new ArrayList<>();
+
+    public void updateImages(List<String> images) {
+        this.productImages = images;
     }
 }
 
