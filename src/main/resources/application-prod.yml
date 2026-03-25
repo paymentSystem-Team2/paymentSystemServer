@@ -33,8 +33,3 @@ oauth2:
 
 api:
   base-url:
-
-cloud:
-  aws:
-    s3:
-      bucket : ${AWS_S3_BUCKET}
