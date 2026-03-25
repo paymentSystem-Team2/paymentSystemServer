@@ -22,7 +22,8 @@ import sparta.paymentsystemserver.global.exception.ErrorCode;
 import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
 
-// 결제 시도 생성과 결제 확정을 담당하는 서비스입니다
+// 결제 생성, 결제 확정 요청 진입, 외부 결제 상태 검증 흐름을 조율하는 서비스
+// 실제 최종 상태 반영은 PaymentFinalizeService에 위임함
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -33,6 +34,7 @@ public class PaymentService {
     private final PublicIdGenerator publicIdGenerator;
     private final PortOnePaymentClient portOnePaymentClient;
     private final PaymentTransactionProcessor paymentTransactionProcessor;
+    private final PaymentFinalizeService paymentFinalizeService;
 
     // 결제 시도 생성 메서드
     // 이 단계에서는 실제 결제를 확정하지 않고, 프론트가 포트원 결제창을 열기 전에 서버에 READY 상태 결제를 미리 저장하는 용도
@@ -98,99 +100,119 @@ public class PaymentService {
         );
     }
 
-    // 결제 확정 메서드
-    // 클라이언트가 결제 성공이라고 보내더라도 서버가 포트원 결제 조회 API를 호출해 최종 상태를 검증한 뒤에만 결제를 확정
-    @Transactional
+    // 사용자가 직접 결제 확정을 요청하는 진입 메서드
+    // - 최초 진입에서는 payment를 조회해서 권한만 검증 -> 외부 포트원 조회는 db 락 없이 먼저 수행
+    // -> 실제 상태 변경이 필요한 시점에만 별도 메서드에서 비관적 락을 잡음
     public PaymentResultResponse confirmPayment(String paymentId, Long userId) {
-        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        // 본인 결제만 확정할 수 있도록 소유권 검사
+        // 본인 결제만 확정할 수 있도록 권한을 먼저 검증한다.
         if (!payment.getUser().getId().equals(userId)) {
             throw new PaymentException(ErrorCode.ORDER_ACCESS_DENIED);
         }
-        return confirmPaymentInternal(payment);
+
+        return confirmPaymentInternal(paymentId);
     }
 
-
-    // 웹훅에서도 결제 확정 로직 재사용
-    @Transactional
+    // 웹훅에서 결제 확정을 위임받아서 처리하는 진입 메서드
+    // 웹훅 처리도 payment 존재만 확인하고 실제 상태 변경은 최종 반영 단계에서만 락 잡아서 처리
     public PaymentResultResponse confirmPaymentByWebhook(String paymentId) {
-        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
+        paymentRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        return confirmPaymentInternal(payment);
+        return confirmPaymentInternal(paymentId);
     }
 
 
 
     // 실제 결제 확정 공통 로직
-    // 결제 상태, 포트원 조회 결과, 금액 일치 여부를 검증한 뒤에 최족 확정
-    private PaymentResultResponse confirmPaymentInternal(Payment payment) {
+    // 1. payment를 락 없이 조회해서 현재 상태 확인
+    // 2. 이미 PAID면 멱등하게 성공 응답 반환
+    // 3. READY 상태가 아니면 확정 불가로 봄
+    // 4. INTERNAL 결제는 외부 조회 없이 바로 최종 반영 단계로 감
+    // 5. 포트원 결제는 외부 결제 상태를 먼저 조회함
+    // 6. 외부 결제 상태와 금액 검증이 끝난 뒤에만 최종 반영 메서드에서 락 잡음
+    private PaymentResultResponse confirmPaymentInternal(String paymentId) {
+        Payment snapshot = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        // 이미 결제 완료된 상태라면 멱등하게 그대로 성공 응답 반환
-        if (payment.getStatus() == PaymentStatus.PAID) {
+        // 이미 결제 완료된 상태라면 멱등하게 성공 응답을 반환한다.
+        if (snapshot.getStatus() == PaymentStatus.PAID) {
             return new PaymentResultResponse(
                     true,
-                    payment.getPaymentId(),
-                    payment.getOrder().getOrderId(),
-                    payment.getStatus().name()
+                    snapshot.getPaymentId(),
+                    snapshot.getOrder().getOrderId(),
+                    snapshot.getStatus().name()
             );
         }
 
-        // READY 상태만 확정 가능
-        if (payment.getStatus() != PaymentStatus.READY) {
+        // READY 상태인 결제만 확정 가능하다.
+        if (snapshot.getStatus() != PaymentStatus.READY) {
             throw new PaymentException(ErrorCode.PAYMENT_CONFIRM_NOT_ALLOWED);
         }
 
-        // 외부 호출이 없는 내부 결제는 즉시 성공 처리
-        if (payment.getProvider() == PaymentProvider.INTERNAL) {
-            paymentTransactionProcessor.processSuccess(payment, "INTERNAL");
-            return toResult(payment);
+        // 외부 PG 호출이 필요 없는 내부 결제는 바로 최종 반영 단계로 넘긴다.
+        if (snapshot.getProvider() == PaymentProvider.INTERNAL) {
+            return paymentFinalizeService.finalizeInternalPayment(paymentId);
         }
 
-        // 포트원 재조회
-        PortOnePaymentInfo paymentInfo = portOnePaymentClient.getPayment(payment.getPaymentId());
+        // PortOne 결제는 외부 API를 먼저 호출해 실제 결제 상태를 검증한다.
+        PortOnePaymentInfo paymentInfo = portOnePaymentClient.getPayment(paymentId);
 
         if (!paymentInfo.isPaid()) {
             paymentTransactionProcessor.handleVerificationFailure(
-                    payment.getPaymentId(),
+                    paymentId,
                     "PortOne 결제 상태가 PAID가 아닙니다."
             );
             throw new PaymentException(ErrorCode.PAYMENT_VERIFICATION_FAILED);
         }
 
-        if (paymentInfo.amount() != payment.getExternalAmount()) {
+        if (paymentInfo.amount() != snapshot.getExternalAmount()) {
             paymentTransactionProcessor.handleVerificationFailure(
-                    payment.getPaymentId(),
-                    "PortOne 승인 금액과 서버 계산 금액이 일치하지 않습니다."
+                    paymentId,
+                    "PortOne 확인 금액과 서버 계산 금액이 일치하지 않습니다."
             );
             throw new PaymentException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
         try {
-            // 외부 결제 성공이 검증되면 내부 성공 후처리를 수행
-            paymentTransactionProcessor.processSuccess(payment, paymentInfo.transactionId());
+            return paymentFinalizeService.finalizePortOnePayment(paymentId, paymentInfo.transactionId());
         } catch (Exception exception) {
-            paymentTransactionProcessor.compensate(
-                    payment.getPaymentId(),
-                    "결제 후처리 실패로 인한 자동 취소"
-            );
+            handleFinalizeFailureCompensation(snapshot);
             throw exception;
         }
-
-        return toResult(payment);
-
     }
 
-    // 결제 성공 응답 생성 메서드
-    private PaymentResultResponse toResult(Payment payment) {
-        return new PaymentResultResponse(
-                true,
-                payment.getPaymentId(),
-                payment.getOrder().getOrderId(),
-                payment.getStatus().name()
-        );
+    // 결제 최종 반영이 실패한 뒤 수행하는 보상 처리
+    // PaymentFinalizeService의 트랜잭션이 끝난 뒤에 호출되니까 여기서는 payment row 락이 해제된 상태에서 외부 취소 api를 호출함
+    // - 내부 결제면 바로 보상 트랜잭션만 수행
+    // - 포트원 결제면 외부 취소 api를 먼저 호출
+    // - 외부 취소 성송하면 보상 트랜잭션 수행
+    // - 외부 취소 실패하면 실패 이력 남김
+    private void handleFinalizeFailureCompensation(Payment payment) {
+        if (payment.getProvider() != PaymentProvider.PORTONE) {
+            paymentTransactionProcessor.compensateAfterCancel(
+                    payment.getPaymentId(), "결제 후처리 실패로 인한 내부 결제 보상"
+            );
+            return;
+        }
+
+        try {
+            portOnePaymentClient.cancelPayment(
+                    payment.getPaymentId(), "결제 후처리 실패로 인한 자동 취소"
+            );
+
+            paymentTransactionProcessor.compensateAfterCancel(
+                    payment.getPaymentId(), "결제 후처리 실패로 인한 자동 취소"
+            );
+        } catch (Exception cancelException) {
+            paymentTransactionProcessor.markCompensationFailure(
+                    payment.getPaymentId(), "결제 후처리 실패 및 PortOne 자동 취소 실패"
+            );
+
+            throw new PaymentException(ErrorCode.REFUND_PROCESS_FAILED);
+        }
     }
+
 }
-

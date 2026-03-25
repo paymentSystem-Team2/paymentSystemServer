@@ -8,11 +8,9 @@ import sparta.paymentsystemserver.domain.order.entity.Order;
 import sparta.paymentsystemserver.domain.order.entity.OrderItem;
 import sparta.paymentsystemserver.domain.order.repository.OrderItemRepository;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
-import sparta.paymentsystemserver.domain.payment.entity.PaymentProvider;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.point.service.PointService;
-import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 
 // 결제 성공 후에 내부 상태 반영이랑 실패하면 보상 처리를 담당
@@ -22,7 +20,6 @@ import sparta.paymentsystemserver.global.exception.ErrorCode;
 public class PaymentTransactionProcessor {
 
     private final PointService pointService;
-    private final PortOnePaymentClient portOnePaymentClient;
     private final PaymentRepository paymentRepository;
     private final OrderItemRepository orderItemRepository;
 
@@ -56,27 +53,28 @@ public class PaymentTransactionProcessor {
         restoreOrderStock(payment.getOrder());
     }
 
-
-    // 외부 결제는 성공했지만 내부 후처리 중 실패한 경우 보상 트랜잭션을 수행 포트원 결제는 자동 취소 내부 결제는 실패 상태만 남김
+    // 결제 후처리 실패 뒤에 외부 결제 취소까지 성공한 경우 로컬 DB 상태를 보상 트랜잭션으로 정리함
+    // 이 메서드는 외부 API 호출 없이 DB 상태 변경만 담당
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void compensate(String paymentId, String failureReason) {
+    public void compensateAfterCancel(String paymentId, String failureReason) {
         Payment payment = paymentRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        if (payment.getProvider() == PaymentProvider.PORTONE) {
-            try {
-                portOnePaymentClient.cancelPayment(
-                        payment.getPaymentId(),
-                        "결제 후처리 실패로 인한 자동 취소"
-                );
-            } catch (Exception exception) {
-                payment.markFailed("결제 후처리 실패 및 PortOne 자동 취소 실패");
-                throw new PaymentException(ErrorCode.REFUND_PROCESS_FAILED);
-            }
-        }
         payment.markFailed(failureReason);
         payment.getOrder().cancel();
         restoreOrderStock(payment.getOrder());
+    }
+
+
+    // 결제 후처리 실패 뒤 외부 결제 취소까지 실패한 경우 최소한의 결제 실패 이력은 별도 트랜잭션으로 남긴다
+    // 외부 결제가 실제로 취소되지 않았을 수 있으니까 주문 취소나 재고 복구까지 단정해서 처리하지 않고
+    // 우선 실패 상태와 사유만 남겨서 후속 대응이 가능하게 함
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markCompensationFailure(String paymentId, String failureReason) {
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        payment.markFailed(failureReason);
     }
 
     // 주문 생성 했을 때 미리 차감했던 재고 돌림
@@ -86,3 +84,4 @@ public class PaymentTransactionProcessor {
         }
     }
 }
+

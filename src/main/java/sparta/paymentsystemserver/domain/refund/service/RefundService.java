@@ -1,22 +1,18 @@
-package sparta.paymentsystemserver.domain.payment.service;
+package sparta.paymentsystemserver.domain.refund.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.payment.dto.PaymentResultResponse;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentProvider;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentStatus;
-import sparta.paymentsystemserver.domain.payment.entity.Refund;
-import sparta.paymentsystemserver.domain.payment.entity.RefundStatus;
 import sparta.paymentsystemserver.domain.payment.exception.PaymentException;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
-import sparta.paymentsystemserver.domain.payment.repository.RefundRepository;
+import sparta.paymentsystemserver.domain.refund.repository.RefundRepository;
 import sparta.paymentsystemserver.global.client.PortOnePaymentClient;
 import sparta.paymentsystemserver.global.client.dto.PortOneCancelInfo;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
-import sparta.paymentsystemserver.global.util.PublicIdGenerator;
 
 // 결제 환불 처리 서비스 환불 가능 여부 검증하고 바깥의 취소 요청과 내부 상태 변경 함께 처리함
 @Slf4j
@@ -27,88 +23,43 @@ public class RefundService {
     private final PaymentRepository paymentRepository;
     private final RefundRepository refundRepository;
     private final PortOnePaymentClient portOnePaymentClient;
-    private final PublicIdGenerator publicIdGenerator;
-    private final RefundTransactionProcessor refundTransactionProcessor;
+    private final RefundFinalizeService refundFinalizeService;
 
-    // 사용자 결제 환불 처리 외부 결제에서는 포트원에 취소를 요청하고 내부 결제(포인트 결제 등)에서는 즉시 환불 이력 생성
-    @Transactional
+    // 사용자의 수동 환불 요청 진입 메서드
+    // 1. payment를 조회해서 권한과 상태를 검증
+    // 2. 포트원 결제인 경우에 외부 취소 api를 먼저 호출
+    // 3. 외부 취소가 끝난 뒤 RefundFinalizeService에서 DB 상태 반영
     public PaymentResultResponse cancelPayment(String paymentId, Long userId, String reason) {
         Payment payment = paymentRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
         validateRefundRequest(payment, userId);
 
-        if(payment.getOrder().isConfirmed()) {
+        if (payment.getOrder().isConfirmed()) {
             return toFailResult(payment);
         }
 
-        // 이미 환불 완료된 결제는 성공 응답만 돌려줌
+        // 이미 환불 완료된 결제라면 멱등하게 성공 응답을 반환
         if (payment.getStatus() == PaymentStatus.REFUNDED) {
             return toResult(payment);
         }
 
         RefundExecution refundExecution = executeRefund(payment, reason);
 
-        // 외부 환불이 성공한 뒤에는 내부 환불 이력을 남김
-        Refund refund = Refund.create(
-                publicIdGenerator.generate("REF"),
-                payment,
+        return refundFinalizeService.finalizeRefund(
+                payment.getPaymentId(),
                 refundExecution.refundAmount(),
                 reason,
-                RefundStatus.COMPLETED,
                 refundExecution.providerRefundId()
         );
-
-        refundRepository.save(refund);
-
-        // 환불 완료 후에 내부에 처리 수행
-        refundTransactionProcessor.processRefund(payment);
-
-        // 결제랑 주문 상태를 최종 환불 상태로 전환
-        payment.markRefunded();
-        payment.getOrder().refund();
-
-        return toResult(payment);
     }
 
-    // 외부에서 이미 취소된 결제를 포트원 웹훅으로 동기화 우리 서버는 내부 환불 상태만 맞춤
-    @Transactional
+    // 포트원 웹훅으로 이미 취소/환불된 결제를 동기화함
+    // 이 메서드는 외부 api를 다시 호출하지 않고 포트원이 보내준 결과를 기준으로 환불 상태만 맞춤
     public void syncRefundFromWebhook(String paymentId, String providerRefundId, String reason) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
+        refundFinalizeService.finalizeRefundFromWebhook(paymentId, providerRefundId, reason);
 
-        if (payment.getStatus() == PaymentStatus.REFUNDED) {
-            log.info("[RefundSync] already refunded. paymentId={}", paymentId);
-            return;
-        }
-
-        if (refundRepository.existsByPaymentId(payment.getId())) {
-            log.info("[RefundSync] refund history already exists. paymentId={}", paymentId);
-            payment.markRefunded();
-            payment.getOrder().refund();
-            return;
-        }
-
-        if (payment.getStatus() != PaymentStatus.PAID) {
-            log.info("[RefundSync] payment is not PAID. skip sync. paymentId={}, status={}", paymentId, payment.getStatus());
-            return;
-        }
-
-        Refund refund = Refund.create(
-                publicIdGenerator.generate("REF"),
-                payment,
-                payment.getTotalAmount(),
-                reason,
-                RefundStatus.COMPLETED,
-                providerRefundId
-        );
-
-        refundRepository.save(refund);
-        refundTransactionProcessor.processRefund(payment);
-        payment.markRefunded();
-        payment.getOrder().refund();
-
-        log.info("[RefundSync] synced refund from webhook. paymentId={}, providerRefundId={}", paymentId, providerRefundId);
+        log.info("[RefundSync] 웹훅 기준 환불 동기화를 완료했습니다. paymentId={}, providerRefundId={}", paymentId, providerRefundId);
     }
 
     // 환불 요청 유효한지 검증. 본인 결제 여부랑 결제 상태랑 중복 환불 여부를 확인함
@@ -130,7 +81,9 @@ public class RefundService {
         }
     }
 
-    // 포트원 결제는 외부 취소 내부 결제는 내부 금액 기준으로 처리
+    // 외부 결제 취소를 수행하고 환불 결과를 반환
+    // 내부 결제는 외부 호출이 필요 없으니까 전체 금액 기준 결과를 바로 만든다
+    // 포트원 결제는 취소 api 호출해서 실제 취소 결과를 확인한다
     private RefundExecution executeRefund(Payment payment, String reason) {
         if (payment.getProvider() != PaymentProvider.PORTONE) {
             // 실제 주문 기준 환불 금액을 이력에 남김

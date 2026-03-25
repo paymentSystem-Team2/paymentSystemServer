@@ -1,10 +1,11 @@
-package sparta.paymentsystemserver.domain.payment.entity;
+package sparta.paymentsystemserver.domain.refund.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import sparta.paymentsystemserver.domain.payment.entity.Payment;
 import sparta.paymentsystemserver.global.config.BaseEntity;
 
 // 환불 이력 엔티티
