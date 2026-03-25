@@ -1,10 +1,9 @@
 package sparta.paymentsystemserver.domain.product.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import sparta.paymentsystemserver.domain.product.dto.GetProductDetailResponse;
 import sparta.paymentsystemserver.domain.product.dto.ProductResponse;
 import sparta.paymentsystemserver.domain.product.service.ProductService;
@@ -28,6 +27,16 @@ public class ProductController {
     public GetProductDetailResponse getProductDetail(
             @PathVariable String productId){
         return productService.getProductDetail(productId);
+    }
+
+    // 이미지 업로드
+    @PostMapping("/{productId}/images")
+    public ResponseEntity<Void> uploadProductImages(
+            @PathVariable String productId,
+            @RequestParam("images") List<MultipartFile> images
+    ) {
+        productService.uploadProductImages(productId, images);
+        return ResponseEntity.ok().build();
     }
 
 }

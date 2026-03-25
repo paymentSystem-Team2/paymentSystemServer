@@ -1,5 +1,6 @@
 package sparta.paymentsystemserver.global.client;
 
+import sparta.paymentsystemserver.global.client.dto.PortOneBillingKeyPaymentInfo;
 import sparta.paymentsystemserver.global.client.dto.PortOneCancelInfo;
 import sparta.paymentsystemserver.global.client.dto.PortOnePaymentInfo;
 
@@ -11,4 +12,16 @@ public interface PortOnePaymentClient {
 
     // paymentId 기준으로 포트원 전액 환불 요청
     PortOneCancelInfo cancelPayment(String paymentId, String reason);
+
+    // 저장된 빌링키로 단건 결제 수행
+    PortOneBillingKeyPaymentInfo payByBillingKey(
+            String paymentId,
+            String billingKey,
+            String orderName,
+            String customerId,
+            String fullName,
+            String phoneNumber,
+            String email,
+            Long amount
+    );
 }

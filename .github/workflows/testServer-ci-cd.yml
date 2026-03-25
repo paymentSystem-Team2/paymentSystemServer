@@ -1,4 +1,4 @@
-name: testServer-ci-cd.yml
+name: testServer-ci-cd
 
 on:
   push:
@@ -38,6 +38,9 @@ jobs:
 
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
+
+      - name: Run tests
+        run: ./gradlew test
 
       - name: Build test JAR
         run: ./gradlew bootJar -x test
@@ -87,10 +90,10 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy test container from GitHub Actions" \
             --parameters "commands=[
+              \"docker stop server-1 server-2 || true\",
+              \"docker rm server-1 server-2 || true\",
+              \"docker rmi ${IMAGE_URI}:${IMAGE_TAG} || true\",
               \"docker pull ${IMAGE_URI}:${IMAGE_TAG}\",
-              \"docker stop test-server || true\",
-              \"docker rm test-server || true\",
-              \"docker run -d --restart unless-stopped --name server-1 -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod ${IMAGE_URI}:${IMAGE_TAG}\",
-              \"docker run -d --restart unless-stopped --name server-2 -p 8081:8080 -e SPRING_PROFILES_ACTIVE=prod ${IMAGE_URI}:${IMAGE_TAG}\"
+              \"docker run -d --restart unless-stopped --name server-1 -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod -e AWS_REGION=ap-northeast-2 ${IMAGE_URI}:${IMAGE_TAG}\",
+              \"docker run -d --restart unless-stopped --name server-2 -p 8081:8080 -e SPRING_PROFILES_ACTIVE=prod -e AWS_REGION=ap-northeast-2 ${IMAGE_URI}:${IMAGE_TAG}\"
             ]" \
-            --output text
