@@ -1,11 +1,10 @@
 package sparta.paymentsystemserver.domain.product.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import sparta.paymentsystemserver.domain.product.dto.GetProductDetailResponse;
 import sparta.paymentsystemserver.domain.product.dto.ProductResponse;
+import sparta.paymentsystemserver.domain.product.service.ProductImageService;
 import sparta.paymentsystemserver.domain.product.service.ProductService;
 
 import java.util.List;
@@ -16,6 +15,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+//    private final ProductImageService productImageService;
 
     @GetMapping
     public List<ProductResponse> getProducts(){
@@ -30,13 +30,13 @@ public class ProductController {
     }
 
     // 이미지 업로드
-    @PostMapping("/{productId}/images")
-    public ResponseEntity<Void> uploadProductImages(
-            @PathVariable String productId,
-            @RequestParam("images") List<MultipartFile> images
-    ) {
-        productService.uploadProductImages(productId, images);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/{productId}/images")
+//    public ResponseEntity<Void> uploadProductImages(
+//            @PathVariable String productId,
+//            @RequestParam("images") List<MultipartFile> images
+//    ) {
+//        productImageService.productImageUpload().uploadProductImages(productId, images);
+//        return ResponseEntity.ok().build();
+//    }
 
 }

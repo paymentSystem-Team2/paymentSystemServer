@@ -147,6 +147,10 @@ api:
               type: number
               required: true
               description: 재고 수량
+            - name: thumbnailImage
+              type: String
+              required: false
+              description: 쌈네일 이미지
 
     create-order:
       url: /api/orders
