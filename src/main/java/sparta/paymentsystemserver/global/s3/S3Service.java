@@ -18,7 +18,7 @@ public class S3Service {
 
     private final S3Template s3Template;
 
-    @Value("${AWS_S3_BUCKET}")
+    @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
     // 여러 이미지 업로드
