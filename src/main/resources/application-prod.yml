@@ -1,13 +1,4 @@
-cloud:
-  aws:
-    s3:
-      bucket : ${AWS_S3_BUCKET}
-
 spring:
-  cloud:
-    aws:
-      s3:
-        bucket : ${AWS_S3_BUCKET}
   config:
     import: aws-parameterstore:/payment-app/prod/
 
@@ -42,3 +33,8 @@ oauth2:
 
 api:
   base-url:
+
+cloud:
+  aws:
+    s3:
+      bucket : ${AWS_S3_BUCKET}
