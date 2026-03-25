@@ -1,9 +1,13 @@
 package sparta.paymentsystemserver.domain.product.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import sparta.paymentsystemserver.domain.product.dto.GetProductDetailResponse;
 import sparta.paymentsystemserver.domain.product.dto.ProductResponse;
+import sparta.paymentsystemserver.domain.product.dto.UploadProductImageRequest;
 import sparta.paymentsystemserver.domain.product.service.ProductImageService;
 import sparta.paymentsystemserver.domain.product.service.ProductService;
 
@@ -15,7 +19,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-//    private final ProductImageService productImageService;
+    private final ProductImageService productImageService;
 
     @GetMapping
     public List<ProductResponse> getProducts(){
@@ -29,14 +33,14 @@ public class ProductController {
         return productService.getProductDetail(productId);
     }
 
-    // 이미지 업로드
-//    @PostMapping("/{productId}/images")
-//    public ResponseEntity<Void> uploadProductImages(
-//            @PathVariable String productId,
-//            @RequestParam("images") List<MultipartFile> images
-//    ) {
-//        productImageService.productImageUpload().uploadProductImages(productId, images);
-//        return ResponseEntity.ok().build();
-//    }
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> uploadProductImages(
+            // MultipartFile 을 body 에 json 방식으로는 받을 수 없음 form data 로 프론트에서 요청을 해주어야 한다
+            // RequestParam 보다 확장성이 높고 쉽게 바인딩 할 수 있다.
+            @ModelAttribute UploadProductImageRequest uploadProductImageRequest
+    ) {
+        productImageService.productImageUpload(uploadProductImageRequest);
+        return ResponseEntity.ok().build();
+    }
 
 }
