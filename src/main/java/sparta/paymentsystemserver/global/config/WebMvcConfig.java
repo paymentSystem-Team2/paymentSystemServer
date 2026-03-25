@@ -19,7 +19,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(adminInterceptor)
                 // /api/admin/** 경로에 적용
                 // 인터셉터가 동작할 경로 지정
-                .addPathPatterns("/api/admin/**")
+                .addPathPatterns("/api/orders/admin")
                 // 관리자 로그인은 제외 (로그인하지 않은 사용자가 접근)
                 // 인터셉터가 도작하지 않아야 할 경로 제외
                 .excludePathPatterns("/api/auth/admin/login");
