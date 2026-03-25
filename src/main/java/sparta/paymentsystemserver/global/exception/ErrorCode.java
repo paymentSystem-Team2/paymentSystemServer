@@ -16,6 +16,8 @@ public enum ErrorCode {
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH004", "Refresh Token이 만료되었습니다. 재로그인 해주세요."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH005", "유효하지 않은 Refresh Token입니다."),
     PASSWORD_NOT_MATCH(HttpStatus.UNAUTHORIZED, "AUTH006", "비밀번호가 일치하지 않습니다."),
+    SESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH007", "인증 정보가 존재하지 않습니다."),
+    SESSION_USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH008", "세션 또는 토큰에서 사용자 정보를 찾을 수 없습니다."),
 
 //    사용자 예외 (USER###)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER001", "유저가 존재하지 않습니다."),

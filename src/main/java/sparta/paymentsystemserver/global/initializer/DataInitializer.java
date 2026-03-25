@@ -94,7 +94,7 @@ public class DataInitializer implements ApplicationRunner {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO users " +
                         "(name, email, password, customer_uid, point_balance, membership_grade, total_paid_amount, phone, provider, role) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 batchArgs
         );
     }
