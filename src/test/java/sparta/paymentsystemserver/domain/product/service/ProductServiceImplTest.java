@@ -24,6 +24,9 @@ class ProductServiceImplTest {
     @Mock
     ProductRepository productRepository;
 
+    @Mock
+    ProductImageService productImageService;
+
     @InjectMocks
     ProductServiceImpl productService;
 
