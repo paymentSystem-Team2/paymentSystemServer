@@ -86,9 +86,9 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductException(ErrorCode.PRODUCT_NOT_FOUND));
 
         // 기존 이미지 삭제
-        for (String imageUrl : product.getProductImages()) {
-            s3Service.deleteImage(imageUrl);
-        }
+//        for (String imageUrl : product.getProductImages()) {
+//            s3Service.deleteImage(imageUrl);
+//        }
 
         // S3 업로드
         List<String> imageUrls = s3Service.uploadImages(images);
