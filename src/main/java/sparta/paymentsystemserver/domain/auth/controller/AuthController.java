@@ -1,6 +1,7 @@
 package sparta.paymentsystemserver.domain.auth.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,5 +47,14 @@ public class AuthController {
                 .header("Authorization" ,"Bearer " + tokenResponse.newAccessToken())
                 .header("X-Refresh-Token" ,"Bearer " + tokenResponse.newRefreshToken())
                 .build();
+    }
+
+    // 관리자 로그인: 관리자 계정으로 세션 기반 로그인
+    @PostMapping("/admin/login")
+    public ResponseEntity<SessionUser> adminLogin(
+            @Valid @RequestBody LoginRequest requestDto,
+            HttpSession session) {
+        SessionUser sessionUser = authService.adminLogin(requestDto, session);
+        return ResponseEntity.status(HttpStatus.OK).body(sessionUser);
     }
 }

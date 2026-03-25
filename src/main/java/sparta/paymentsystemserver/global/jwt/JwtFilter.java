@@ -40,6 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (pathMatcher.match("/actuator/health", path)) return true;
         if (pathMatcher.match("/favicon.ico", path)) return true;
         if (pathMatcher.match("/api/webhooks/**", path)) return true;
+        if (pathMatcher.match("/api/admin/**", path)) return true;
 
         // OPTIONS preflight 제외(프론트 CORS)
         return "OPTIONS".equalsIgnoreCase(method);

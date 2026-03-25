@@ -49,7 +49,7 @@ public class DataInitializer implements ApplicationRunner {
 
         jdbcTemplate.batchUpdate(
                 "INSERT INTO products (product_id, name, price, stock, description, status, category) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)", // ?는 placeholder로 JDBC에서 SQL 인젝션 공격을 방지하기 위함(?의 게수 = batchArgs의 배열 원소 개수)
                 batchArgs
         );
     }
@@ -74,7 +74,8 @@ public class DataInitializer implements ApplicationRunner {
                         "NORMAL",
                         0L,
                         "010-1111-1111",
-                        "LOCAL"
+                        "LOCAL",
+                        "ADMIN"
                 },
                 new Object[]{
                         "admin1",
@@ -85,14 +86,15 @@ public class DataInitializer implements ApplicationRunner {
                         "VIP",
                         300000L,
                         "010-2222-2222",
-                        "LOCAL"
+                        "LOCAL",
+                        "USER"
                 }
         );
 
         jdbcTemplate.batchUpdate(
                 "INSERT INTO users " +
-                        "(name, email, password, customer_uid, point_balance, membership_grade, total_paid_amount, phone, provider) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        "(name, email, password, customer_uid, point_balance, membership_grade, total_paid_amount, phone, provider, role) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 batchArgs
         );
     }

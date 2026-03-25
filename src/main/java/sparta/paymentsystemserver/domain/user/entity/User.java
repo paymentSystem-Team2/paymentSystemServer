@@ -9,6 +9,7 @@ import sparta.paymentsystemserver.domain.membership.entity.MembershipGradeType;
 import sparta.paymentsystemserver.domain.point.exception.InsufficientPointException;
 import sparta.paymentsystemserver.domain.point.exception.InvalidPointException;
 import sparta.paymentsystemserver.global.config.BaseEntity;
+import sparta.paymentsystemserver.domain.user.entity.UserRole;
 
 import static sparta.paymentsystemserver.global.exception.ErrorCode.POINT_AMOUNT_INVALID;
 import static sparta.paymentsystemserver.global.exception.ErrorCode.POINT_BALANCE_INSUFFICIENT;
@@ -65,6 +66,11 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String phone;
 
+    // 사용자 역할
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role = UserRole.USER;
+
     public User(String name, String email, String password, String phone, String customerUid) {
         this.name = name;
         this.email = email;
@@ -119,6 +125,18 @@ public class User extends BaseEntity {
 
     public void updateGrade(MembershipGradeType grade) {
         this.membershipGrade = grade;
+    }
+
+    public void updateRole(UserRole role) {
+        this.role = role;
+    }
+
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
+
+    public boolean isUser() {
+        return role == UserRole.USER;
     }
 
 }
