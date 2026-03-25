@@ -11,7 +11,7 @@ import java.io.Serializable;
 // Spring Session은 세션 객체를 Redis에 직렬화하여 저장 Serializable을 구현해야 함
 @Getter
 @AllArgsConstructor
-public class SessionUser implements Serializable {
+public class SessionUser implements Serializable {  // Redis에 세션 저장 시 객체를 직렬화 하기 위함, 안하면 Redis에 저장 실패
     private static final long serialVersionUID = 1L;
 
     private Long userId;        // 사용자 ID

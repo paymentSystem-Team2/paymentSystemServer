@@ -18,7 +18,7 @@ import sparta.paymentsystemserver.global.exception.ErrorCode;
 // 3. 사용자의 ADMIN 역할 여부
 @Slf4j
 @Component
-public class AdminInterceptor implements HandlerInterceptor {
+public class AdminInterceptor implements HandlerInterceptor {       //
 
     @Override
     public boolean preHandle(HttpServletRequest request,
