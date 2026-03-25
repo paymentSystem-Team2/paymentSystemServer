@@ -56,3 +56,8 @@ app:
 
 server:
   forward-headers-strategy: framework
+
+cloud:
+  aws:
+    s3:
+      bucket: ${S3_BUCKET}
