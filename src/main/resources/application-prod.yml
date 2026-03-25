@@ -3,8 +3,6 @@ spring:
     aws:
       s3:
         bucket: ${AWS_S3_BUCKET}
-      region:
-        static: ap-northeast-2
   config:
     import: aws-parameterstore:/payment-app/prod/
 
