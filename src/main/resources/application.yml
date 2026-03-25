@@ -1,10 +1,4 @@
 spring:
-  cloud:
-    aws:
-      s3:
-        bucket: ${AWS_S3_BUCKET}
-      region:
-        static: ap-northeast-2
   config:
     import:
       - classpath:client-api-config.yml
