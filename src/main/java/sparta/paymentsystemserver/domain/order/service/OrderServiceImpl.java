@@ -181,6 +181,23 @@ public class OrderServiceImpl implements OrderService {
         order.purchaseConfirmed();
     }
 
+    @Override
+    public List<GetOrderListResponse> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(order -> new GetOrderListResponse(
+                        order.getOrderNumber(),
+                        order.getOrderId(),
+                        order.getTotalAmount(),
+                        order.getUsedPoints(),
+                        order.getTotalAmount() - order.getPointDiscountAmount(),
+                        0L,
+                        "KRW",
+                        order.getStatus().name(),
+                        order.getOrderedAt()
+                ))
+                .toList();
+    }
+
     private Order getOrder(String orderId) {
         return orderRepository.findByOrderId(orderId).orElseThrow(
                 () -> new OrderException(ErrorCode.ORDER_NOT_FOUND)

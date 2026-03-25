@@ -1,5 +1,6 @@
 package sparta.paymentsystemserver.domain.order.service;
 
+import org.jspecify.annotations.Nullable;
 import sparta.paymentsystemserver.domain.order.dto.*;
 
 import java.util.List;
@@ -14,4 +15,6 @@ public interface OrderService {
     updateOrderStatusResponse processDelivery(String orderId);
 
     void confirmOrder(String orderId);
+
+    List<GetOrderListResponse> getAllOrders();
 }
