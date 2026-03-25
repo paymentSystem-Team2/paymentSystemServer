@@ -1,7 +1,7 @@
-package sparta.paymentsystemserver.domain.payment.repository;
+package sparta.paymentsystemserver.domain.refund.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import sparta.paymentsystemserver.domain.payment.entity.Refund;
+import sparta.paymentsystemserver.domain.refund.entity.Refund;
 
 import java.util.Optional;
 
