@@ -18,9 +18,6 @@ public class S3Service {
 
     private final S3Template s3Template;
 
-    @Value("${spring.cloud.aws.s3.bucket}")
-    private String bucket;
-
     // 여러 이미지 업로드
     public List<String> uploadImages(List<MultipartFile> files) {
         List<String> imageUrls = new ArrayList<>();
@@ -32,12 +29,12 @@ public class S3Service {
 
             String fileKey = "products/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
             try {
-                s3Template.upload(bucket, fileKey, file.getInputStream());
+                s3Template.upload("payment-front-server", fileKey, file.getInputStream());
             } catch (IOException e) {
                 throw new RuntimeException("S3 업로드 실패", e);
             }
 
-            imageUrls.add(s3Template.createSignedGetURL(bucket, fileKey, Duration.ofDays(7)).toString());
+            imageUrls.add(s3Template.createSignedGetURL("payment-front-server", fileKey, Duration.ofDays(7)).toString());
         }
 
         return imageUrls;
