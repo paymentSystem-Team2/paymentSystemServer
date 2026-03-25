@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final S3Service s3Service;
 
     // 상품 목록 조회
+    @Transactional(readOnly = true)
     public List<ProductResponse> getProducts() {
         return productRepository.findByStatusOrderByNameAsc(ProductStatus.ON_SALE)
                 .stream()
@@ -41,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     // 상품 상세 조회(상품ID로 조회)
+    @Transactional(readOnly = true)
     public GetProductDetailResponse getProductDetail(String productId){
         Product product = productRepository.findByProductId(productId)
                 .orElseThrow(()-> new ProductException(ErrorCode.PRODUCT_NOT_FOUND));
