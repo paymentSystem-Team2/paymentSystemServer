@@ -2,7 +2,7 @@ spring:
   cloud:
     aws:
       s3:
-        bucket: ${AWS_S3_BUCKET}
+        bucket: payment-front-server
       region:
         static: ap-northeast-2
   config:
