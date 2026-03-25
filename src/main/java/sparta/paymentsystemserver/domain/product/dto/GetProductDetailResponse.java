@@ -1,6 +1,6 @@
 package sparta.paymentsystemserver.domain.product.dto;
 
-import java.util.List;
+import java.util.Map;
 
 public record GetProductDetailResponse(
         String id,
@@ -9,6 +9,6 @@ public record GetProductDetailResponse(
         Long stock,
         String description,
         String status,
-        List<String> productImages
+        Map<String,Integer> productImages
 ) {
 }
