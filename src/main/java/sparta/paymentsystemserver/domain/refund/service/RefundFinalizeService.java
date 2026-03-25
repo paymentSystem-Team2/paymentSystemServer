@@ -51,18 +51,7 @@ public class RefundFinalizeService {
             throw new PaymentException(ErrorCode.REFUND_NOT_ALLOWED);
         }
 
-        // 이미 환불 이력이 있으면 중복 생성하지 않음
-        if (!refundRepository.existsByPaymentId(payment.getId())) {
-            Refund refund = Refund.create(
-                    publicIdGenerator.generate("REF"),
-                    payment,
-                    refundAmount,
-                    reason,
-                    RefundStatus.COMPLETED,
-                    providerRefundId
-            );
-            refundRepository.save(refund);
-        }
+        createRefundIfAbsent(payment, refundAmount, reason, providerRefundId);
 
         refundTransactionProcessor.processRefund(payment);
         payment.markRefunded();
@@ -86,29 +75,51 @@ public class RefundFinalizeService {
             return;
         }
 
-        if (refundRepository.existsByPaymentId(payment.getId())) {
-            payment.markRefunded();
-            payment.getOrder().refund();
-            return;
-        }
-
         if (payment.getStatus() != PaymentStatus.PAID) {
             return;
         }
 
-        Refund refund = Refund.create(
-                publicIdGenerator.generate("REF"),
+        createRefundIfAbsent(
                 payment,
                 payment.getTotalAmount(),
                 reason,
-                RefundStatus.COMPLETED,
                 providerRefundId
         );
 
-        refundRepository.save(refund);
         refundTransactionProcessor.processRefund(payment);
         payment.markRefunded();
         payment.getOrder().refund();
+    }
+
+    // 환불 이력을 중복 없이 생성
+    // 먼저 payment 기준 환불 이력 존재 여부 확인하고 동시에 다른 요청이나 웹훅이 같은 환불을 생성하더라도
+    // saveAndFlush 이후 한 번 더 존재 여부를 확인해서 처리
+    private void createRefundIfAbsent(
+            Payment payment,
+            long refundAmount,
+            String reason,
+            String providerRefundId
+    ) {
+        if (refundRepository.existsByPaymentId(payment.getId())) {
+            return;
+        }
+
+        try {
+            Refund refund = Refund.create(
+                    publicIdGenerator.generate("REF"),
+                    payment,
+                    refundAmount,
+                    reason,
+                    RefundStatus.COMPLETED,
+                    providerRefundId
+            );
+            refundRepository.saveAndFlush(refund);
+        } catch (Exception exception) {
+            // 동시에 다른 요청/웹훅이 이미 환불 이력을 만든 경우를 멱등하게 처리한다.
+            if (!refundRepository.existsByPaymentId(payment.getId())) {
+                throw exception;
+            }
+        }
     }
 
     // 환불 완료 응답 dto 생성

@@ -151,7 +151,7 @@ public class WebhookService {
     ) {
         refundService.syncRefundFromWebhook(
                 payment.getPaymentId(),
-                request.data() != null ? request.data().transactionId() : null,
+                request.data() != null ? request.data().cancellationId() : null,
                 "PortOne 웹훅 취소/환불 동기화"
         );
 
