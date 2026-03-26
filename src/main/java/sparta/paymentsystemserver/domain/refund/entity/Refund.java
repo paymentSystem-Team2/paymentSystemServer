@@ -44,7 +44,7 @@ public class Refund extends BaseEntity {
     private RefundStatus status;
 
     // 외부 PG가 내려준 환불 거래 번호
-    @Column(length = 100)
+    @Column(length = 100 , unique = true)
     private String providerRefundId;
 
     @Builder
