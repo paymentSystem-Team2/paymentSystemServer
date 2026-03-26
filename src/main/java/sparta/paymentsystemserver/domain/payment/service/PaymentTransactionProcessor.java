@@ -27,9 +27,6 @@ public class PaymentTransactionProcessor {
     public void processSuccess(Payment payment, String providerTransactionId) {
         Order order = payment.getOrder();
 
-        // 결제를 최종 승인 상태로 변경
-        payment.markPaid(providerTransactionId);
-
         // 주문에 실제 사용 포인트와 할인 금액을 반영. 사용 포인트 전액이 할인 금액
         order.updatePoint(payment.getPointsToUse(), payment.getPointsToUse());
 
@@ -41,6 +38,9 @@ public class PaymentTransactionProcessor {
 
         // 모든 내부 반영이 끝난 뒤 주문을 결제 완료 상태로 전환
         order.completePurchase();
+
+        // 결제를 최종 승인 상태로 변경
+        payment.markPaid(providerTransactionId);
     }
 
     // 포트원 검증 실패처럼 결제 최종 실패 처리해야 될 때 사용 별도 트랜잭션으로 실패 상태랑 확정해서 남김
