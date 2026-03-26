@@ -40,6 +40,7 @@ public class GlobalExceptionHandler {
     // 하나의 공통 에러로 추상화
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleBaseException(BaseException e) {
+        log.error("[API - ERROR] 발생 원인: ", e);
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getStatus())

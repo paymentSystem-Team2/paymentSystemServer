@@ -73,6 +73,7 @@ public class RefundService {
         }
 
         if (payment.getStatus() != PaymentStatus.PAID) {
+            log.info("do??");
             throw new PaymentException(ErrorCode.REFUND_NOT_ALLOWED);
         }
 
