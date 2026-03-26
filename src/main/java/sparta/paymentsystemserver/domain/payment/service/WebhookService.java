@@ -201,9 +201,6 @@ public class WebhookService {
         }
 
         try {
-            log.info("[Webhook] 결제 자동 확정 시작 - paymentId={}", paymentId);
-            paymentService.confirmPaymentByWebhook(paymentId);
-            log.info("[Webhook] 결제 자동 확정 성공 - paymentId={}", paymentId);
             markEventProcessed(event);
             log.info("[Webhook] 이벤트 처리 완료 - webhookId={}, eventId={}", resolvedWebhookId, event.getId());
             return success("웹훅 처리가 완료되었습니다.");

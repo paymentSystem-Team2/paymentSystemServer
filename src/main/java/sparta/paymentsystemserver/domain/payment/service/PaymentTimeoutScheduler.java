@@ -33,7 +33,6 @@ public class PaymentTimeoutScheduler {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
-    private final PaymentService paymentService;
     private final PortOnePaymentClient portOnePaymentClient;
 
     // 1분마다 만료 대상 주문을 검사
@@ -71,17 +70,22 @@ public class PaymentTimeoutScheduler {
 
         for (Payment payment : readyPayments) {
             try {
-                // 실제 포트원 결제 상태를 재조회해서 결제만 되고 confirm이 누락된 케이스를 구분
                 PortOnePaymentInfo paymentInfo = portOnePaymentClient.getPayment(payment.getPaymentId());
 
-                // 실제 결제가 이미 완료되었다면 서버에서 자동 컨펌 처리
+                // 외부 결제가 이미 완료된 건은 timeout 만료 대상에서 제외
                 if (paymentInfo.isPaid()) {
-                    paymentService.confirmPaymentByWebhook(payment.getPaymentId());
-                    log.info("시간 초과 READY 결제를 PortOne 재조회 후 자동 확정했습니다. paymentId={}", payment.getPaymentId());
+                    log.info(
+                            "외부 결제가 이미 완료된 READY 결제는 timeout 만료 처리하지 않습니다. paymentId={}",
+                            payment.getPaymentId()
+                    );
                     return;
                 }
             } catch (Exception exception) {
-                log.warn("시간 초과 READY 결제의 PortOne 재조회에 실패했습니다. paymentId={}", payment.getPaymentId(), exception);
+                log.warn(
+                        "시간 초과 READY 결제의 PortOne 조회에 실패했습니다. paymentId={}",
+                        payment.getPaymentId(),
+                        exception
+                );
                 return;
             }
         }
