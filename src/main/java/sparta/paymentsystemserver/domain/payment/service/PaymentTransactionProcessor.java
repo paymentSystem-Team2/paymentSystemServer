@@ -46,7 +46,7 @@ public class PaymentTransactionProcessor {
     // 포트원 검증 실패처럼 결제 최종 실패 처리해야 될 때 사용 별도 트랜잭션으로 실패 상태랑 확정해서 남김
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleVerificationFailure(String paymentId, String failureReason) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
+        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
         payment.markFailed(failureReason);
         payment.getOrder().cancel();
@@ -57,7 +57,7 @@ public class PaymentTransactionProcessor {
     // 이 메서드는 외부 API 호출 없이 DB 상태 변경만 담당
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void compensateAfterCancel(String paymentId, String failureReason) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
+        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
         payment.markFailed(failureReason);
@@ -71,7 +71,7 @@ public class PaymentTransactionProcessor {
     // 우선 실패 상태와 사유만 남겨서 후속 대응이 가능하게 함
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markCompensationFailure(String paymentId, String failureReason) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
+        Payment payment = paymentRepository.findByPaymentIdForUpdate(paymentId)
                 .orElseThrow(() -> new PaymentException(ErrorCode.PAYMENT_NOT_FOUND));
 
         payment.markFailed(failureReason);
