@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(()-> new ProductException(ErrorCode.PRODUCT_NOT_FOUND));
 
 
-        Map<String,Integer> integerMap = productImageService.getProductImage(product);
+        List<Map<String,Integer>> integerMap = productImageService.getProductImage(product);
 
         // 조회한 상품 반환
         return new GetProductDetailResponse(

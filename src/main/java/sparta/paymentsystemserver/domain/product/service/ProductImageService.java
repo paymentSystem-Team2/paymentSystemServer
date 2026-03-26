@@ -1,6 +1,7 @@
 package sparta.paymentsystemserver.domain.product.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import sparta.paymentsystemserver.domain.product.dto.UploadProductImageRequest;
 import sparta.paymentsystemserver.domain.product.entity.Product;
@@ -10,12 +11,12 @@ import sparta.paymentsystemserver.domain.product.repository.ProductImageReposito
 import sparta.paymentsystemserver.domain.product.repository.ProductRepository;
 import sparta.paymentsystemserver.global.s3.S3Service;
 
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static sparta.paymentsystemserver.global.exception.ErrorCode.PRODUCT_NOT_FOUND;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductImageService {
@@ -45,19 +46,19 @@ public class ProductImageService {
         productImageRepository.saveAll(productImages);
     }
 
-    public Map<String,Integer> getProductImage(Product product) {
+    public List<Map<String,Integer>> getProductImage(Product product) {
         List<ProductImage> productImages =  productImageRepository.findAllByProduct(product);
 
         return productImages.stream()
-                .collect(Collectors.toMap(
-                        image -> s3Service.getImageUrl(image.getFileKey()).toString(),
-                        ProductImage::getSortOrder,
-                        (existing, duplicate) -> existing
-                ));
+                .map(image -> Map.of(
+                        s3Service.getImageUrl(image.getFileKey()).toString(),
+                        image.getSortOrder()
+                ))
+                .collect(Collectors.toList());
     }
 
-    public URL getProductThumbnail(Product product) {
+    public String getProductThumbnail(Product product) {
         Optional<ProductImage> productImage = productImageRepository.findByProductAndThumbnail(product, true);
-        return productImage.map(image -> s3Service.getImageUrl(image.getFileKey())).orElse(null);
+        return productImage.map(image -> s3Service.getImageUrl(image.getFileKey()).toString()).orElse(null);
     }
 }

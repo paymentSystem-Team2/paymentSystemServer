@@ -56,6 +56,8 @@ public class SecurityConfig {
                         "/actuator/health",
                         "/login/oauth2/**",
                         "/oauth2/**",
+                        "/api/orders/admin/**",
+                        "/api/memberships",
                         "/api/auth/admin/login" // 관리자 로그인 추가
                 ).permitAll()
                 .requestMatchers("/api/admin/**").permitAll()  // 관리자 경로는 인터셉터에서 검증

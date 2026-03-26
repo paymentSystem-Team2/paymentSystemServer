@@ -62,4 +62,4 @@ app:
       logo-text: 🏪 CommerceHub
 
 server:
-  forward-headers-strategy: framework
+  forward-headers-strategy: native

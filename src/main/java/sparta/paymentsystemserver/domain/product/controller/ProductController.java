@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import sparta.paymentsystemserver.domain.product.dto.GetProductDetailResponse;
 import sparta.paymentsystemserver.domain.product.dto.ProductResponse;
 import sparta.paymentsystemserver.domain.product.dto.UploadProductImageRequest;
@@ -33,7 +32,7 @@ public class ProductController {
         return productService.getProductDetail(productId);
     }
 
-    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/admin/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> uploadProductImages(
             // MultipartFile 을 body 에 json 방식으로는 받을 수 없음 form data 로 프론트에서 요청을 해주어야 한다
             // RequestParam 보다 확장성이 높고 쉽게 바인딩 할 수 있다.
