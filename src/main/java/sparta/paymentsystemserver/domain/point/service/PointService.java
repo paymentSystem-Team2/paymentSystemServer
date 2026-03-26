@@ -42,9 +42,7 @@ public class PointService {
 
 //    구매확정 시 포인트 적립
     @Transactional
-    public void earnPoints(Long userId, Order order, Long paymentAmount) {
-        User user = userService.findById(userId);
-
+    public void earnPoints(User user, Order order, Long paymentAmount) {
         MembershipGradePolicy membershipGradePolicy = userService.getUserMemberShip(user);
 
         long points = BigDecimal.valueOf(paymentAmount)
@@ -65,11 +63,8 @@ public class PointService {
             user.addPoint(points);
         }
 
-        user.addTotalPaidAmount(paymentAmount);
-        userService.calculateGrade(user);
-
         log.info("[포인트 적립] userId: {}, 결제금액: {}, 적립포인트: {}, 등급: {}",
-                userId, paymentAmount, points, user.getMembershipGrade());
+                user.getId(), paymentAmount, points, user.getMembershipGrade());
     }
 
 //    결제 확정 시 포인트 사용

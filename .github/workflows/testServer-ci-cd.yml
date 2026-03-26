@@ -90,10 +90,10 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy test container from GitHub Actions" \
             --parameters "commands=[
-              \"docker pull ${IMAGE_URI}:${IMAGE_TAG}\",
               \"docker stop server-1 server-2 || true\",
               \"docker rm server-1 server-2 || true\",
+              \"docker rmi ${IMAGE_URI}:${IMAGE_TAG} || true\",
+              \"docker pull ${IMAGE_URI}:${IMAGE_TAG}\",
               \"docker run -d --restart unless-stopped --name server-1 -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod -e AWS_REGION=ap-northeast-2 ${IMAGE_URI}:${IMAGE_TAG}\",
               \"docker run -d --restart unless-stopped --name server-2 -p 8081:8080 -e SPRING_PROFILES_ACTIVE=prod -e AWS_REGION=ap-northeast-2 ${IMAGE_URI}:${IMAGE_TAG}\"
             ]" \
-            --output text

@@ -1,4 +1,4 @@
-package sparta.paymentsystemserver.domain.payment.service;
+package sparta.paymentsystemserver.domain.refund.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -8,6 +8,9 @@ spring:
       - classpath:client-api-config.yml
   application:
     name: paymentSystemServer
+  sql:
+    init:
+      mode: always
   security:
     oauth2:
       client:

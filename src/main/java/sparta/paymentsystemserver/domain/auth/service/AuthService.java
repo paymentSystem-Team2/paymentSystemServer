@@ -1,5 +1,6 @@
 package sparta.paymentsystemserver.domain.auth.service;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,8 +8,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sparta.paymentsystemserver.domain.auth.dto.LoginRequest;
 import sparta.paymentsystemserver.domain.auth.dto.LoginUser;
+import sparta.paymentsystemserver.domain.auth.dto.SessionUser;
 import sparta.paymentsystemserver.domain.auth.dto.SignupResponse;
 import sparta.paymentsystemserver.domain.auth.dto.TokenResponse;
+import sparta.paymentsystemserver.domain.auth.exception.AdminAuthorizationException;
 import sparta.paymentsystemserver.domain.auth.exception.InvalidTokenException;
 import sparta.paymentsystemserver.domain.auth.exception.PasswordNotFoundException;
 import sparta.paymentsystemserver.domain.user.dto.UserRequest;
@@ -45,11 +48,11 @@ public class AuthService {
         return new LoginUser(token,refreshToken,true, user.getEmail());
     }
 
-//    [Login] → Access Token (짧은 만료) + Refresh Token (긴 만료) 발급
-//    [API 요청] → Access Token으로 인증
-//    [Access Token 만료] → 클라이언트가 /api/auth/refresh 호출
-//    [Refresh Token 검증] → Redis에 저장된 값과 비교 → 새 Access Token 발급
-//    [Refresh Token 만료/없음] → 재로그인 요구
+    //    [Login] → Access Token (짧은 만료) + Refresh Token (긴 만료) 발급
+    //    [API 요청] → Access Token으로 인증
+    //    [Access Token 만료] → 클라이언트가 /api/auth/refresh 호출
+    //    [Refresh Token 검증] → Redis에 저장된 값과 비교 → 새 Access Token 발급
+    //    [Refresh Token 만료/없음] → 재로그인 요구
     public TokenResponse reissue(String refreshToken , String expiredAccessToken) {
 
         if (jwtUtil.isExpired(refreshToken)) {
@@ -79,6 +82,28 @@ public class AuthService {
 
     }
 
+    //  관리자 로그인: 관리자 계정으로 세션 기반 로그인을 수행
+    public SessionUser adminLogin(@Valid LoginRequest requestDto, HttpSession session) {
+        // 사용자 조회
+        User user = userService.findByEmail(requestDto.getEmail());
+
+        // 비밀번호 검증
+        checkPassword(requestDto.getPassword(), user.getPassword());
+
+        // 관리자 여부 확인
+        if (!user.isAdmin()) {
+            throw new AdminAuthorizationException(ErrorCode.ADMIN_ONLY);
+        }
+
+        // SessionUser 생성 및 세션에 저장
+        SessionUser sessionUser = new SessionUser(user);
+        session.setAttribute("user", sessionUser);
+
+        log.info("Admin login successful: {}", user.getEmail());
+
+        return sessionUser;
+    }
+
     public void checkPassword(String rawPassword, String password) {
         if(!passwordEncoder.matches(rawPassword, password)){
             throw new PasswordNotFoundException(ErrorCode.PASSWORD_NOT_MATCH);
@@ -86,6 +111,6 @@ public class AuthService {
     }
 
     public SignupResponse signUp(UserRequest requestDto) {
-       return userService.save(requestDto);
+        return userService.save(requestDto);
     }
 }

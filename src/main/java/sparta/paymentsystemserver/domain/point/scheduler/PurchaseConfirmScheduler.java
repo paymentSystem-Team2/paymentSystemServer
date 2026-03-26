@@ -2,6 +2,7 @@ package sparta.paymentsystemserver.domain.point.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class PurchaseConfirmScheduler {
     private static final long CONFIRM_AFTER_DAYS = 7L;
 
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정 00시
+    @SchedulerLock(name = "purchaseConfirmScheduler_confirmPurchase", lockAtMostFor = "PT30M", lockAtLeastFor = "PT10S")
     @Transactional
     public void confirmPurchase() {
         log.info("[구매확정 스케쥴러] 실행 시작");
@@ -45,7 +47,7 @@ public class PurchaseConfirmScheduler {
             try {
                 order.purchaseConfirmed();
                 pointService.earnPoints(
-                        order.getUser().getId(),
+                        order.getUser(),
                         order,
                         order.getTotalAmount()
                 );

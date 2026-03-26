@@ -13,5 +13,7 @@ public interface OrderService {
 
     updateOrderStatusResponse processDelivery(String orderId);
 
-    void confirmOrder(String orderId);
+    void confirmOrder(String orderId, Long userId);
+
+    List<GetOrderListResponse> getAllOrders();
 }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
 //    공통 예외 코드 (COM###)
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COM002", "서버 내부 오류가 발생했습니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "COM001", "입력값이 올바르지 않습니다."),
 
 //    인증/인가 예외 (AUTH###)
@@ -16,6 +17,8 @@ public enum ErrorCode {
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH004", "Refresh Token이 만료되었습니다. 재로그인 해주세요."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH005", "유효하지 않은 Refresh Token입니다."),
     PASSWORD_NOT_MATCH(HttpStatus.UNAUTHORIZED, "AUTH006", "비밀번호가 일치하지 않습니다."),
+    SESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH007", "인증 정보가 존재하지 않습니다."),
+    SESSION_USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH008", "세션 또는 토큰에서 사용자 정보를 찾을 수 없습니다."),
 
 //    사용자 예외 (USER###)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER001", "유저가 존재하지 않습니다."),
@@ -69,8 +72,10 @@ public enum ErrorCode {
     POINT_TRANSACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "PNT003", "포인트 거래 내역을 찾을 수 없습니다."),
 
 //    멤버십 예외 (MEM###)
-    MEMBERSHIP_GRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "MEM001", "멤버십 등급 정책을 찾을 수 없습니다.");
+    MEMBERSHIP_GRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "MEM001", "멤버십 등급 정책을 찾을 수 없습니다."),
 
+    // 관리자 예외 (ADMIN###)
+    ADMIN_ONLY(HttpStatus.FORBIDDEN, "ADMIN001", "관리자만 접근 가능합니다.");
 
     private final HttpStatus status;
     private final String code;

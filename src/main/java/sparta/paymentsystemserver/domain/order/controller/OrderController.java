@@ -31,11 +31,16 @@ public class OrderController {
     }
 
     // 주문 목록 조회
-    @GetMapping
+    @GetMapping("/me")
     public ResponseEntity<List<GetOrderListResponse>> getMyOrders(
             @AuthenticationPrincipal LoginUserData loginUserData
     ) {
         return ResponseEntity.ok(orderService.getMyOrders(loginUserData.userId()));
+    }
+
+    @GetMapping("/admin")
+    public ResponseEntity<List<GetOrderListResponse>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
     }
 
     // 주문 상세 조회
@@ -57,9 +62,10 @@ public class OrderController {
 
     @PatchMapping("/{orderId}/confirmed")
     public ResponseEntity<Void> confirmOrder(
+            @AuthenticationPrincipal LoginUserData loginUserData,
             @PathVariable String orderId
     ){
-        orderService.confirmOrder(orderId);
+        orderService.confirmOrder(orderId, loginUserData.userId());
         return ResponseEntity.ok().build();
     }
 

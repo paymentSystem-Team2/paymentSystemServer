@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import sparta.paymentsystemserver.domain.product.exception.ProductStockException;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Getter
 @Table(name = "products")
@@ -40,6 +37,11 @@ public class Product {
 
     @Column(nullable = false)
     private String category;
+
+//    @ElementCollection
+//    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+//    @Column(name = "image_url")
+//    private List<String> productImages = new ArrayList<>();
 
     public Product(
             String productId,
@@ -89,14 +91,5 @@ public class Product {
         }
     }
 
-    // 상품 이미지 추가
-    @ElementCollection
-    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "image_url")
-    private List<String> productImages = new ArrayList<>();
-
-    public void updateImages(List<String> images) {
-        this.productImages = images;
-    }
 }
 

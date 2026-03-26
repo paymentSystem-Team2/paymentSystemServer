@@ -2,6 +2,7 @@ package sparta.paymentsystemserver.domain.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class PaymentTimeoutScheduler {
 
     // 1분마다 만료 대상 주문을 검사
     @Scheduled(fixedDelay = 60_000)
+    @SchedulerLock(name = "paymentTimeoutScheduler_expirePendingOrders", lockAtMostFor = "PT55S", lockAtLeastFor = "PT5S")
     @Transactional
     public void expirePendingOrders() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(PAYMENT_TIMEOUT_MINUTES);

@@ -173,12 +173,36 @@ public class OrderServiceImpl implements OrderService {
         return new updateOrderStatusResponse(true,orderId,order.getStatus().name());
     }
 
-    public void confirmOrder(String orderId) {
+    public void confirmOrder(String orderId , Long userId) {
+        User user = userService.findById(userId);
         Order order = getOrder(orderId);
-        if(order.getUsedPoints() == 0L){
-            pointService.earnPoints(order.getUser().getId(), order, order.getTotalAmount());
+
+        if(!user.getId().equals(order.getUser().getId())) {
+            throw new OrderException(ErrorCode.ORDER_ACCESS_DENIED);
         }
+        if(order.getUsedPoints() == 0L){
+            pointService.earnPoints(user, order, order.getTotalAmount());
+        }
+        user.addTotalPaidAmount(order.getTotalAmount());
+        userService.calculateGrade(user);
         order.purchaseConfirmed();
+    }
+
+    @Override
+    public List<GetOrderListResponse> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(order -> new GetOrderListResponse(
+                        order.getOrderNumber(),
+                        order.getOrderId(),
+                        order.getTotalAmount(),
+                        order.getUsedPoints(),
+                        order.getTotalAmount() - order.getPointDiscountAmount(),
+                        0L,
+                        "KRW",
+                        order.getStatus().name(),
+                        order.getOrderedAt()
+                ))
+                .toList();
     }
 
     private Order getOrder(String orderId) {

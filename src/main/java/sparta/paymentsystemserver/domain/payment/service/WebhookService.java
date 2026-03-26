@@ -10,6 +10,7 @@ import sparta.paymentsystemserver.domain.payment.entity.PaymentStatus;
 import sparta.paymentsystemserver.domain.payment.entity.PaymentWebhookEvent;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentRepository;
 import sparta.paymentsystemserver.domain.payment.repository.PaymentWebhookEventRepository;
+import sparta.paymentsystemserver.domain.refund.service.RefundService;
 import tools.jackson.databind.ObjectMapper;
 
 // 포트원 웹훅 처리 서비스
@@ -150,7 +151,7 @@ public class WebhookService {
     ) {
         refundService.syncRefundFromWebhook(
                 payment.getPaymentId(),
-                request.data() != null ? request.data().transactionId() : null,
+                request.data() != null ? request.data().cancellationId() : null,
                 "PortOne 웹훅 취소/환불 동기화"
         );
 

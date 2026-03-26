@@ -2,6 +2,7 @@ package sparta.paymentsystemserver.domain.point.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import sparta.paymentsystemserver.domain.point.entity.PointTransaction;
@@ -20,6 +21,7 @@ public class PointExpirationScheduler {
     private final PointExpirationService pointExpirationService;
 
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정 00시
+    @SchedulerLock(name = "pointExpirationScheduler_expirePoints", lockAtMostFor = "PT30M", lockAtLeastFor = "PT10S")
     public void expirePoints() {
         log.info("[포인트 만료 스케쥴러] 실행 시작");
 

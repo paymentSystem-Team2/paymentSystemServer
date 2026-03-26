@@ -1,15 +1,10 @@
 package sparta.paymentsystemserver.domain.order.exception;
 
-import lombok.Getter;
+import sparta.paymentsystemserver.global.exception.BaseException;
 import sparta.paymentsystemserver.global.exception.ErrorCode;
 
-@Getter
-public class OrderException extends RuntimeException {
-
-    private final ErrorCode errorCode;
-
+public class OrderException extends BaseException {
     public OrderException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
+        super(errorCode);
     }
 }
