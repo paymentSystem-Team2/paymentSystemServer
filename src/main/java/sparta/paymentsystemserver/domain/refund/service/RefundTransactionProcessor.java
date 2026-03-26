@@ -2,6 +2,7 @@ package sparta.paymentsystemserver.domain.refund.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import sparta.paymentsystemserver.domain.order.entity.Order;
 import sparta.paymentsystemserver.domain.order.entity.OrderItem;
 import sparta.paymentsystemserver.domain.order.repository.OrderItemRepository;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
@@ -30,8 +31,16 @@ public class RefundTransactionProcessor {
 
     // 환불된 주문의 주문 상품 수량만큼 각 상품 재고를 되돌림
     private void restoreOrderStock(Payment payment) {
-        for (OrderItem orderItem : orderItemRepository.findWithProductByOrder(payment.getOrder())) {
+        Order order = payment.getOrder();
+
+        if (order.isStockRestored()) {
+            return;
+        }
+
+        for (OrderItem orderItem : orderItemRepository.findWithProductByOrder(order)) {
             orderItem.getProduct().increaseStock(orderItem.getQuantity());
         }
+
+        order.markStockRestored();
     }
 }

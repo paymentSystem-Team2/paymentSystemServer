@@ -56,6 +56,9 @@ public class Order {
     @Column
     private LocalDateTime purchasedAt;
 
+    @Column(nullable = false)
+    private boolean stockRestored = false;
+
     public Order(String orderId, String orderNumber, User user, Long totalAmount, OrderStatus status, LocalDateTime orderedAt) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
@@ -120,5 +123,13 @@ public class Order {
 
     public boolean isConfirmed(){
         return this.status.equals(OrderStatus.PURCHASE_CONFIRMED);
+    }
+
+    public boolean isStockRestored() {
+        return stockRestored;
+    }
+
+    public void markStockRestored() {
+        this.stockRestored = true;
     }
 }

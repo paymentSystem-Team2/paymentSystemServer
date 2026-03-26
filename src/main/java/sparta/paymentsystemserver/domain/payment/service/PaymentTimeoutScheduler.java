@@ -100,9 +100,15 @@ public class PaymentTimeoutScheduler {
 
     // 주문 생성 시 미리 차감한 재고를 원복 주문 단위로 한 번만 실행해서 중복 복구를 방지
     private void restoreOrderStock(Order order) {
+        if (order.isStockRestored()) {
+            return;
+        }
+
         for (OrderItem orderItem : orderItemRepository.findWithProductByOrder(order)) {
             orderItem.getProduct().increaseStock(orderItem.getQuantity());
         }
+
+        order.markStockRestored();
     }
 }
 

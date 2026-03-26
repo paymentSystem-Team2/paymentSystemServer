@@ -79,9 +79,15 @@ public class PaymentTransactionProcessor {
 
     // 주문 생성 했을 때 미리 차감했던 재고 돌림
     private void restoreOrderStock(Order order) {
+        if (order.isStockRestored()) {
+            return;
+        }
+
         for (OrderItem orderItem : orderItemRepository.findWithProductByOrder(order)) {
             orderItem.getProduct().increaseStock(orderItem.getQuantity());
         }
+
+        order.markStockRestored();
     }
 }
 
