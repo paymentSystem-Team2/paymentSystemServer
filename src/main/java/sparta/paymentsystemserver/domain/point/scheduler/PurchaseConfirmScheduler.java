@@ -47,7 +47,7 @@ public class PurchaseConfirmScheduler {
             try {
                 order.purchaseConfirmed();
                 pointService.earnPoints(
-                        order.getUser().getId(),
+                        order.getUser(),
                         order,
                         order.getTotalAmount()
                 );
