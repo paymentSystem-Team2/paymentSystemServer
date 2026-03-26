@@ -1,0 +1,82 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # OAuth2 자동 설정 비활성화
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            scope:
+              - email
+              - profile
+          kakao:
+            client-id: test-kakao-id
+            client-secret: test-kakao-secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+            scope:
+              - profile_nickname
+            client-name: kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+  # S3 비활성화
+  cloud:
+    aws:
+      s3:
+        bucket: test-bucket
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+
+jwt:
+  secret: test-secret-key-that-is-long-enough-for-hs256-algorithm-minimum-32bytes
+
+portone:
+  api:
+    base-url: https://api.portone.io
+    secret: test-secret
+  store:
+    id: test-store-id
+  channel:
+    kg-inicis: test-kg
+    toss: test-toss
+  webhook:
+    secret: dGVzdC13ZWJob29rLXNlY3JldA==
+
+app:
+  ui:
+    branding:
+      app-name: TestApp
+      tagline: test
+      logo-text: test
+
+oauth2:
+  redirect-url: http://localhost:8081/pages/oauth2-callback.html
+
