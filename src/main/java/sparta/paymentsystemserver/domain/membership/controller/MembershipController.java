@@ -11,7 +11,7 @@ import sparta.paymentsystemserver.domain.membership.service.MembershipService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/memberships")
+@RequestMapping("/api/admin/memberships")
 @RequiredArgsConstructor
 public class MembershipController {
 

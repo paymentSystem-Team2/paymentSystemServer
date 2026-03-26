@@ -148,7 +148,7 @@ api:
               required: true
               description: 재고 수량
             - name: thumbnailImage
-              type: String
+              type: string
               required: false
               description: 쌈네일 이미지
 
@@ -307,7 +307,7 @@ api:
               description: 결제 상태 (READY)
 
     process-delivery:
-      url: /api/orders/{orderId}
+      url: /api/orders/admin/{orderId}
       method: PATCH
       description: 배송 현황 업데이트
       pathParams:

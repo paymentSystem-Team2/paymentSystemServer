@@ -52,7 +52,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getMyOrderDetail(loginUserData.userId(), orderId));
     }
 
-    @PatchMapping("/{orderId}")
+    @PatchMapping("/admin/{orderId}")
     public ResponseEntity<updateOrderStatusResponse> setOrderStatus(
             @PathVariable String orderId
     ){
