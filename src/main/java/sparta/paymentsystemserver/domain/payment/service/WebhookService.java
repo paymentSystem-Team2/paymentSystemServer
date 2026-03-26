@@ -3,6 +3,7 @@ package sparta.paymentsystemserver.domain.payment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookRequest;
 import sparta.paymentsystemserver.domain.payment.dto.PortOneWebhookResponse;
 import sparta.paymentsystemserver.domain.payment.entity.Payment;
@@ -54,7 +55,7 @@ public class WebhookService {
             return new PortOneWebhookResponse(false, "유효하지 않은 webhook 요청입니다.");
         }
     }
-
+    @Transactional
     public PortOneWebhookResponse processWebhookEvent(String webhookId, PortOneWebhookRequest request) {
         String paymentId = request.paymentId();
         String providerStatus = request.providerStatus();
