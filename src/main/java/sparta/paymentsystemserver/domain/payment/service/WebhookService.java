@@ -38,6 +38,7 @@ public class WebhookService {
     // WebhookSignatureService를 통해 서명을 검증하고 -> raw body를 PortOneWebhookRequest로 파싱
     // 파싱된 요청을 기존 이벤트 처리 메서드로 전잘
     // 서명 검증 또는 페이로드 파싱에 실패하면 유효하지 않은 웹훅 요청으로 간주하고 실패 응답 반환
+    @Transactional
     public PortOneWebhookResponse processWebhook(
             String webhookId,
             String rawBody,
@@ -55,7 +56,7 @@ public class WebhookService {
             return new PortOneWebhookResponse(false, "유효하지 않은 webhook 요청입니다.");
         }
     }
-    @Transactional
+
     public PortOneWebhookResponse processWebhookEvent(String webhookId, PortOneWebhookRequest request) {
         String paymentId = request.paymentId();
         String providerStatus = request.providerStatus();
