@@ -200,11 +200,11 @@ public class PaymentService {
 
         try {
             portOnePaymentClient.cancelPayment(
-                    payment.getPaymentId(), "결제 후처리 실패로 인한 자동 취소"
+                    payment.getPaymentId(), "결제 확정 실패로 인한 자동 취소"
             );
 
             paymentTransactionProcessor.compensateAfterCancel(
-                    payment.getPaymentId(), "결제 후처리 실패로 인한 자동 취소"
+                    payment.getPaymentId(), "결제 확정 실패로 인한 자동 취소"
             );
         } catch (Exception cancelException) {
             paymentTransactionProcessor.markCompensationFailure(

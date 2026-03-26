@@ -149,6 +149,16 @@ public class WebhookService {
             PortOneWebhookRequest request,
             PaymentWebhookEvent event
     ) {
+        if (payment.getStatus() != PaymentStatus.PAID && payment.getStatus() != PaymentStatus.REFUNDED) {
+            markEventProcessed(event);
+            log.info(
+                    "[Webhook] 결제 확정 전 취소 이벤트는 환불 동기화 없이 종료합니다. paymentId={}, status={}",
+                    payment.getPaymentId(),
+                    payment.getStatus()
+            );
+            return success("결제 확정 전 취소 이벤트는 보상 처리 대상으로 간주하고 종료했습니다.");
+        }
+
         refundService.syncRefundFromWebhook(
                 payment.getPaymentId(),
                 request.data() != null ? request.data().cancellationId() : null,
@@ -157,7 +167,7 @@ public class WebhookService {
 
         markEventProcessed(event);
         log.info(
-                "[Webhook] 취소/환불 이벤트 동기화 완료 - providerStatus={}, paymentId={}",
+                "[Webhook] 취소/환불 이벤트 동기화를 완료했습니다. providerStatus={}, paymentId={}",
                 request.providerStatus(),
                 payment.getPaymentId()
         );
