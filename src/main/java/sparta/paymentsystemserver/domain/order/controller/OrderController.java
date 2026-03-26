@@ -62,9 +62,10 @@ public class OrderController {
 
     @PatchMapping("/{orderId}/confirmed")
     public ResponseEntity<Void> confirmOrder(
+            @AuthenticationPrincipal LoginUserData loginUserData,
             @PathVariable String orderId
     ){
-        orderService.confirmOrder(orderId);
+        orderService.confirmOrder(orderId, loginUserData.userId());
         return ResponseEntity.ok().build();
     }
 
